@@ -90,7 +90,6 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
             payment: type === '지출' ? prev.payment : '', 
         }));
     }, [type]);
-
     // ----------------------------------------------------
     // [2번 요청] 결제 수단 선택 핸들러
     // ----------------------------------------------------
@@ -102,7 +101,7 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
     const handleDateEditClick = () => {
         alert('날짜/시간 선택 팝업창 (구현 예정)');
     }
-
+    
     // 키패드 입력 핸들러 (유지)
     const handleKeypadClick = (key) => {
         let newAmount = amount;
