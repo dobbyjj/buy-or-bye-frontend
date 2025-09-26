@@ -121,7 +121,7 @@ const LedgerPage = () => {
         
         return ledgerEntries
             .filter(entry => entry.date === targetDateString)
-            .sort((a, b) => (a.expense > 0 ? 1 : -1));
+            .sort(a => (a.expense > 0 ? 1 : -1));
     }, [ledgerEntries, selectedDay, monthIndex]);
     
     const formatCurrency = (amount) => {

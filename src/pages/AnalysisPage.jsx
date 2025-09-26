@@ -156,10 +156,6 @@ const AnalysisPage = () => {
     </div>
   );
 
-  // 분석 결과 대기 화면 (사용하지 않으므로 임시로 렌더링하지 않음)
-  const renderAnalysisResult = () => null; 
-
-
   const renderStep = () => {
     switch (step) {
       case 0:
