@@ -44,6 +44,7 @@ function MyPage() {
           <div
             className="mypage-item"
             onClick={() => navigate("/fixed-expense")}
+            style={{ cursor: "pointer" }}
           >
             <span>고정비 지출 관리하기</span>
             <button className="mypage-arrow">{">"}</button>
