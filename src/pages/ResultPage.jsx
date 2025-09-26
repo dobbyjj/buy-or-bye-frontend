@@ -103,6 +103,7 @@ const ResultPage = () => {
           테스트 다시 하기
         </button>
       </div>
+      
     </MobileLayout>
   );
 };
