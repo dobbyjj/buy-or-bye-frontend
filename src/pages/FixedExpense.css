@@ -1,0 +1,84 @@
+.fixedexpense-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.fixedexpense-header {
+  background: #2563eb;
+  color: #fff;
+  padding: 24px 0 16px 0;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.fixedexpense-title {
+  font-size: 1.1em;
+}
+.fixedexpense-main {
+  flex: 1;
+  padding: 24px 0 80px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.fixedexpense-form {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  padding: 24px;
+  margin-bottom: 24px;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.fixedexpense-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.08rem;
+  color: #222;
+  gap: 6px;
+}
+.fixedexpense-form select,
+.fixedexpense-form input[type="month"] {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 1em;
+}
+.fixedexpense-img {
+  margin-top: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+.fixedexpense-img img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.fixedexpense-bottom-nav {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  padding: 8px 0;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+  z-index: 10;
+}
+.fixedexpense-bottom-nav button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 1.1em;
+  padding: 4px 0;
+  cursor: pointer;
+}
