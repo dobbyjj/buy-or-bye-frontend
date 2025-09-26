@@ -24,7 +24,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} /> 
 
         {/* 💥 하단 네비게이션 바 경로들 (LedgerPage/AssetPage/ChatbotPage에서 사용) */}
-        <Route path="/mypage" element={<div>My Page (하단1)</div>} />
+        <Route path="/mypage" element={<MyPage/>} />
         <Route path="/ledger" element={<LedgerPage />} />
         <Route path="/asset" element={<div>자산 수정 (하단3)</div>} />
         <Route path="/chatbot" element={<ChatbotPage />} />
