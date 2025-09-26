@@ -1,260 +1,277 @@
-// src/pages/DashboardPage.jsx
 import React, { useState } from 'react';
-import { Doughnut } from 'react-chartjs-2'; 
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'; 
+import { Doughnut, Bar, Line } from 'react-chartjs-2'; 
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js'; 
 import MobileLayout from '../components/layout/MobileLayout';
 import BottomNavbar from '../components/common/BottomNavbar';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-// Chart.js에서 도넛 차트 사용을 위해 필수 요소 등록
-ChartJS.register(ArcElement, Tooltip, Legend); 
+// Chart.js의 필수 요소 및 플러그인 모두 등록
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, ChartDataLabels); 
 
 
 const DashboardPage = () => {
-  // 현재 보고 있는 탭 상태 (자산: asset, 지출: expense, 수입: earn)
-  const [activeTab, setActiveTab] = useState('expense'); 
-  
-  // 💥💥 1. 월 선택 상태 및 모달 상태 추가 💥💥
-  const [selectedMonth, setSelectedMonth] = useState('2025년 9월'); // 초기값: 현재 월
-  const [isMonthModalOpen, setIsMonthModalOpen] = useState(false); // 월 선택 모달 상태
+    const [activeTab, setActiveTab] = useState('asset'); // 초기 탭은 자산
+    
+    // 임시 데이터
+    const summary = {
+        currentAsset: 12500000,
+        monthlyIncome: 1200000,
+        monthlyExpense: 829000,
+    };
 
-  // 임시 데이터 (실제 데이터는 API로 받아와야 합니다.)
-  const summary = {
-    totalAsset: 12500000,
-    currentExpense: 829000,
-    currentEarn: 1200000,
-  };
-  
-  // 자산 상세 데이터
-  const assetData = {
-    labels: ['예금/적금', '투자 (주식/펀드)', '현금', '부동산 (임시)'],
-    datasets: [
-      {
-        data: [5000000, 3500000, 500000, 3500000], 
-        backgroundColor: ['#16A34A', '#2563EB', '#FBBF24', '#DC2626'], 
-        borderWidth: 0,
-      },
-    ],
-  };
+    // ----------------------------------------------------
+    // 그래프 데이터 정의 (유지)
+    // ----------------------------------------------------
+    
+    // 1. 자산 데이터
+    const assetChartData = {
+        ratio: {
+            labels: ['예금/적금', '투자', '현금', '부동산'],
+            datasets: [{ data: [500, 350, 50, 350], backgroundColor: ['#14B8A6', '#3B82F6', '#FBBF24', '#EF4444'], borderWidth: 0 }],
+        },
+        comparison: {
+            labels: ['나', '동 연령 평균', '재무 목표'],
+            datasets: [
+                { label: '자산', data: [1250, 900, 1500], backgroundColor: '#3B82F6' },
+            ],
+        },
+        yearly: {
+            labels: ['1월', '3월', '5월', '7월', '9월', '11월'],
+            datasets: [
+                { label: '총 자산', data: [1000, 1150, 1200, 1100, 1250, 1300], borderColor: '#10B981', tension: 0.3, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.2)' },
+            ],
+        },
+    };
 
-  // 지출 상세 데이터 예시 (카테고리별)
-  const expenseData = {
-    labels: ['식비', '교통', '쇼핑', '문화', '기타'],
-    datasets: [
-      {
-        data: [350000, 150000, 100000, 129000, 100000], 
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-        borderWidth: 0,
-      },
-    ],
-  };
+    // 2. 지출 데이터
+    const expenseChartData = {
+        monthly: {
+            labels: ['식비', '교통', '쇼핑', '문화', '기타'],
+            datasets: [{ data: [350, 150, 100, 129, 100], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'], borderWidth: 0 }],
+        },
+        comparison: {
+            labels: ['나', '동 연령 목표', '동 연령 평균'],
+            datasets: [
+                { label: '지출', data: [829, 650, 950], backgroundColor: '#FF6384' },
+            ],
+        },
+        yearly: {
+            labels: ['1월', '3월', '5월', '7월', '9월', '11월'],
+            datasets: [
+                { label: '총 지출', data: [750, 800, 780, 900, 829, 700], borderColor: '#EF4444', tension: 0.3, fill: false },
+            ],
+        },
+    };
+    
+    // 3. 수입 데이터
+    const incomeChartData = {
+        monthly: {
+            labels: ['월급', '투자수익', '부수입'],
+            datasets: [{ data: [1000, 100, 100], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24'], borderWidth: 0 }],
+        },
+        comparison: {
+            labels: ['나', '동 연령 목표', '동 연령 평균'],
+            datasets: [
+                { label: '수입', data: [1200, 1500, 1100], backgroundColor: '#22C55E' },
+            ],
+        },
+        yearly: {
+            labels: ['1월', '3월', '5월', '7월', '9월', '11월'],
+            datasets: [
+                { label: '총 수입', data: [1100, 1250, 1200, 1300, 1200, 1400], borderColor: '#22C55E', tension: 0.3, fill: false },
+            ],
+        },
+    };
 
-  // 수입 상세 데이터 예시 (카테고리별)
-  const earnData = {
-    labels: ['월급', '부수입', '투자수익'],
-    datasets: [
-      {
-        data: [1000000, 100000, 100000], 
-        backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24'],
-        borderWidth: 0,
-      },
-    ],
-  };
+    const tabConfig = {
+        asset: {
+            title: '총 자산 현황',
+            data: assetChartData,
+            color: 'text-green-600',
+            chart1: { type: Doughnut, title: '전체 자산 비율', source: assetChartData.ratio },
+            chart2: { type: Bar, title: '동 연령 비교', source: assetChartData.comparison },
+            chart3: { type: Line, title: '1년 자산 추이', source: assetChartData.yearly },
+        },
+        expense: {
+            title: '총 지출 현황',
+            data: expenseChartData,
+            color: 'text-red-500',
+            chart1: { type: Doughnut, title: '월별 지출 레이블', source: expenseChartData.monthly },
+            chart2: { type: Bar, title: '동 연령 vs 목표 지출 비교', source: expenseChartData.comparison },
+            chart3: { type: Line, title: '1년 지출 추이', source: expenseChartData.yearly },
+        },
+        income: {
+            title: '총 수입 현황',
+            data: incomeChartData,
+            color: 'text-blue-500',
+            chart1: { type: Doughnut, title: '월별 수입 레이블', source: incomeChartData.monthly },
+            chart2: { type: Bar, title: '동 연령 vs 목표 수입 비교', source: incomeChartData.comparison },
+            chart3: { type: Line, title: '1년 수입 추이', source: incomeChartData.yearly },
+        },
+    };
 
-  // 탭에 따라 중앙에 표시될 정보와 차트 데이터를 설정
-  const chartConfig = activeTab === 'expense' 
-    ? { title: '지출 합계', amount: summary.currentExpense, categories: expenseData.labels.length, color: 'text-orange-600', data: expenseData }
-    : activeTab === 'earn'
-    ? { title: '수입 합계', amount: summary.currentEarn, categories: earnData.labels.length, color: 'text-indigo-600', data: earnData }
-    : { 
-        title: '총 자산', 
-        amount: summary.totalAsset, 
-        categories: assetData.labels.length, 
-        color: 'text-green-600', 
-        data: assetData 
-      };
+    const currentConfig = tabConfig[activeTab];
 
-  // 도넛 차트 옵션 설정
-  const chartOptions = {
-    responsive: true,
-    cutout: '70%', 
-    // 💥💥 중앙 텍스트가 차트의 툴팁/범례에 의해 가려지는 것을 방지하기 위해 title을 강제 숨김 💥💥
-    plugins: {
-        legend: { display: false },
-        tooltip: {
-            callbacks: {
-                label: (context) => {
-                    const label = context.label || '';
-                    const value = context.parsed || 0;
-                    return `${label}: ${value.toLocaleString()}원`;
-                }
+    // 금액 포맷팅 함수
+    const formatCurrency = (amount) => {
+        return amount ? amount.toLocaleString('ko-KR') : 0;
+    };
+
+
+    // ----------------------------------------------------
+    // 차트 옵션 정의 (레이블 잘림 문제 해결 로직 포함)
+    // ----------------------------------------------------
+    const commonOptions = {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: (context) => {
+                        let label = context.dataset.label || '';
+                        if (label) label += ': ';
+                        label += formatCurrency(context.parsed.y || context.parsed);
+                        return label;
+                    },
+                },
+            },
+            datalabels: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true, display: true, ticks: { callback: (value) => value + '만' } },
+            x: { display: true },
+        },
+    };
+
+    // 💥 도넛 차트 전용 옵션 (레이블 잘림 문제 해결) 💥
+    const doughnutOptions = {
+        ...commonOptions,
+        scales: { x: { display: false }, y: { display: false } },
+        cutout: '70%',
+        layout: {
+            padding: {
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 20
             }
-        }
-    },
-    // 애니메이션 비활성화 (선택 사항)
-    animation: false,
-  };
-
-
-  return (
-    <MobileLayout>
-      <div className="pb-20 pt-4 px-4"> 
-        {/* === 1. 상단 정보 (월 선택) === */}
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-bold text-gray-800">대시보드</h1>
-          {/* 💥💥 월 선택 버튼: 현재 월 표시 및 클릭 시 모달 열기 💥💥 */}
-          <button 
-            onClick={() => setIsMonthModalOpen(true)}
-            className="text-base font-semibold text-indigo-600 flex items-center hover:text-indigo-800 transition"
-          >
-            {selectedMonth} 
-            <span className="ml-1 text-lg">⬇️</span>
-          </button>
-        </header>
-
-        {/* === 2. This Month 요약 카드 === */}
-        <div className="bg-white p-4 rounded-xl shadow-lg border-b-2 mb-8">
-          <h2 className="text-base font-semibold text-gray-700 mb-4">이번 달</h2>
-          
-          {/* 자산/수입/지출 요약 라인 */}
-          <SummaryLine label="총 자산" amount={summary.totalAsset} color="bg-green-500" />
-          <SummaryLine label="총 지출" amount={summary.currentExpense} color="bg-orange-500" />
-          <SummaryLine label="총 수입" amount={summary.currentEarn} color="bg-indigo-500" />
-        </div>
-        
-        {/* === 3. 자산/지출/수입 탭 및 차트 영역 === */}
-        <section className="mt-8">
-          {/* 탭 버튼 */}
-          <div className="flex space-x-4 border-b pb-2 mb-8">
-            <TabButton label="자산" active={activeTab === 'asset'} onClick={() => setActiveTab('asset')} />
-            <TabButton label="지출" active={activeTab === 'expense'} onClick={() => setActiveTab('expense')} />
-            <TabButton label="수입" active={activeTab === 'earn'} onClick={() => setActiveTab('earn')} />
-          </div>
-          
-          {/* 실제 도넛 차트 영역 */}
-          <div className="flex justify-center items-center h-80 relative">
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: { /* ... */ }, 
             
-            <div className="w-64 h-64"> 
-                <Doughnut data={chartConfig.data} options={chartOptions} />
-            </div>
-            
-            {/* 💥💥 차트 중앙 텍스트 오버레이 (겹침 문제 해결) 💥💥 */}
-            <div className="absolute text-center pointer-events-none">
-              <p className={`text-xl font-bold ${chartConfig.color}`}>{chartConfig.title}</p>
-              <p className="text-3xl font-extrabold text-gray-800">{chartConfig.amount.toLocaleString()}원</p>
-              <p className="text-sm text-gray-500 mt-1">
-                {chartConfig.categories}개 카테고리
-              </p>
-            </div>
-          </div>
-        </section>
-        
-        {/* === 4. 차트 아래 상세 목록 (범례 역할) === */}
-        <div className="mt-8 space-y-3">
-             <h3 className="text-base font-semibold text-gray-700">상세 항목 ({chartConfig.categories}개)</h3>
-             
-             {chartConfig.data.labels?.map((label, index) => (
-                <div key={label} className="flex justify-between p-3 bg-white border rounded-lg shadow-sm">
-                    <div className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-3" 
-                          style={{ backgroundColor: chartConfig.data.datasets[0].backgroundColor[index] }}
-                        ></div>
-                        <span className="text-gray-700 font-medium">{label}</span>
+            datalabels: {
+                color: '#333',
+                textAlign: 'center',
+                font: {
+                    weight: 'bold',
+                    size: 9, // 글꼴 크기 축소
+                },
+                formatter: (value, context) => {
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = ((value / total) * 100).toFixed(1) + '%';
+                    const label = context.chart.data.labels[context.dataIndex];
+
+                    return `${label}\n${percentage}`;
+                },
+                anchor: 'end',
+                align: 'end',
+                offset: 5,
+            },
+        },
+    };
+
+
+    return (
+        <MobileLayout activeNav="dashboard">
+            <div className="p-4 bg-white min-h-screen pb-24">
+                {/* === 상단 요약 === */}
+                <h1 className="text-2xl font-bold text-gray-800 mb-6">결과 대시보드</h1>
+                
+                <div className="bg-gray-50 p-4 rounded-xl shadow-inner mb-8">
+                    <p className="text-sm font-semibold text-gray-600 mb-2">이번 달 자산, 지출, 수입 요약</p>
+                    <div className="flex justify-between text-lg font-bold">
+                        <span className="text-green-600">자산: {formatCurrency(summary.currentAsset)}원</span>
+                        <span className="text-red-500">지출: {formatCurrency(summary.monthlyExpense)}원</span>
+                        <span className="text-blue-600">수입: {formatCurrency(summary.monthlyIncome)}원</span>
                     </div>
-                    <span className="font-semibold text-gray-900">
-                        {chartConfig.data.datasets[0].data[index]?.toLocaleString()}원
-                    </span>
                 </div>
-             ))}
-        </div>
 
-      </div>
-      
-      {/* 하단 내비게이션 바 */}
-      <BottomNavbar />
+                {/* === 탭 네비게이션 === */}
+                <div className="flex space-x-4 border-b pb-2 mb-8">
+                    {['asset', 'expense', 'income'].map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={`flex-1 py-2 font-semibold capitalize 
+                                        ${activeTab === tab ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}
+                        >
+                            {tab === 'asset' ? '자산' : tab === 'expense' ? '지출' : '수입'}
+                        </button>
+                    ))}
+                </div>
 
-      {/* 💥💥 2. 월 선택 모달 컴포넌트 추가 💥💥 */}
-      <MonthPickerModal 
-          isOpen={isMonthModalOpen} 
-          onClose={() => setIsMonthModalOpen(false)}
-          onMonthSelect={setSelectedMonth}
-      />
-    </MobileLayout>
-  );
+                {/* === 탭별 차트 영역 === */}
+                <section className="space-y-10">
+                    <h2 className="text-xl font-bold text-gray-800">{currentConfig.title}</h2>
+                    
+                    {/* 차트 1: 도넛 차트 (외부 레이블 적용) */}
+                    <ChartBlock config={currentConfig.chart1} options={doughnutOptions} isDoughnut={true} />
+
+                    {/* 차트 2: 동 연령 vs 목표 비교 (바 그래프) */}
+                    <ChartBlock config={currentConfig.chart2} options={commonOptions} />
+
+                    {/* 차트 3: 1년 추이 그래프 (라인 그래프) */}
+                    <ChartBlock config={currentConfig.chart3} options={commonOptions} />
+
+                </section>
+                
+            </div>
+            
+            {/* 하단 내비게이션 바 */}
+            <BottomNavbar isDashboard={true} /> 
+        </MobileLayout>
+    );
 };
 
 export default DashboardPage;
 
-// --- 하위 컴포넌트 정의 (이전과 동일) ---
+// --- 하위 차트 블록 컴포넌트 (레이블 잘림 문제 해결 로직 포함) ---
+const ChartBlock = ({ config, options, isDoughnut = false }) => {
+    const ChartComponent = config.type;
 
-const SummaryLine = ({ label, amount, color }) => (
-  <div className="mb-2">
-    <div className="flex justify-between text-sm text-gray-700">
-      <span>{label}</span>
-      <span className="font-semibold">{amount.toLocaleString()}원</span>
-    </div>
-    <div className="w-full bg-gray-200 rounded-full h-2 mt-0.5">
-      <div 
-        className={`${color} h-2 rounded-full`} 
-        style={{ width: `${Math.min(amount / 1500000 * 100, 100)}%` }}
-      ></div>
-    </div>
-  </div>
-);
-
-const TabButton = ({ label, active, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`
-      py-2 px-3 text-sm font-semibold transition duration-200 
-      ${active 
-        ? 'text-indigo-600 border-b-2 border-indigo-600' 
-        : 'text-gray-500 hover:text-gray-800'
-      }
-    `}
-  >
-    {label}
-  </button>
-);
-
-
-// 💥💥 3. 월 선택 모달 컴포넌트 (임시 구현) 💥💥
-const MonthPickerModal = ({ isOpen, onClose, onMonthSelect }) => {
-    if (!isOpen) return null;
-
-    const availableMonths = [
-        '2025년 9월', '2025년 8월', '2025년 7월', '2025년 6월'
-    ];
-
-    const handleSelect = (month) => {
-        onMonthSelect(month);
-        onClose();
+    // 금액 포맷팅 함수
+    const formatCurrency = (amount) => {
+        return amount.toLocaleString('ko-KR');
     };
+    
+    // 💥💥 중앙 총액 텍스트를 위한 데이터 추출 💥💥
+    const totalAmount = config.source.datasets[0].data.reduce((a, b) => a + b, 0);
+
 
     return (
-        // 모달 배경
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            {/* 모달 내용 컨테이너 (모바일에 맞게 작게 설정) */}
-            <div className="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
-                <h3 className="text-lg font-bold mb-4">월 선택</h3>
-                <div className="space-y-3">
-                    {availableMonths.map(month => (
-                        <button
-                            key={month}
-                            onClick={() => handleSelect(month)}
-                            className="w-full py-2 text-center text-indigo-600 border border-indigo-100 rounded-lg hover:bg-indigo-50 transition"
-                        >
-                            {month}
-                        </button>
-                    ))}
+        <div className="bg-white p-4 rounded-xl shadow-lg border">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">{config.title}</h3>
+            
+            {/* 💥💥 [수정] 도넛 차트일 경우 총액을 상단에 배치하여 공간 확보 💥💥 */}
+            {isDoughnut && (
+                 <div className="text-center mb-4">
+                    <p className="text-sm font-bold text-gray-800">
+                        {config.title.includes('비율') ? '총 자산 총액' : '월별 합계'}
+                    </p>
+                    <p className="text-3xl font-extrabold text-indigo-600">
+                        {formatCurrency(totalAmount)}
+                    </p>
                 </div>
-                <button 
-                    onClick={onClose}
-                    className="w-full mt-4 py-2 text-gray-500 border rounded-lg hover:bg-gray-50 transition"
-                >
-                    닫기
-                </button>
+            )}
+            
+            {/* 💥💥 [수정] 차트 영역 크기를 획기적으로 축소하여 레이블 공간 극대화 💥💥 */}
+            <div className="relative h-48 w-full flex items-center justify-center"> 
+                {/* 차트 컨테이너를 부모 요소의 60%로 줄여 레이블 공간 확보 */}
+                <div className="h-full w-3/5"> 
+                    <ChartComponent data={config.source} options={options} />
+                </div>
             </div>
         </div>
     );
-};      
+};
