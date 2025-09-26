@@ -8,6 +8,7 @@ import ResultPage from './pages/ResultPage'; // (결과 페이지 경로도 확�
 import LedgerPage from './pages/LedgerPage';
 import AnalysisPage from './pages/AnalysisPage';
 import DashboardPage from './pages/DashboardPage';
+import ChatbotPage from './pages/ChatbotPage'; // 👈 챗봇 페이지
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
         <Route path="/mypage" element={<div>My Page (하단1)</div>} />
         <Route path="/ledger" element={<LedgerPage />} />
         <Route path="/asset" element={<div>자산 수정 (하단3)</div>} />
-        <Route path="/chatbot" element={<div>챗봇 (하단4)</div>} />
+        <Route path="/chatbot" element={<ChatbotPage />} />
 
         {/* 404 페이지 */}
         <Route path="*" element={<div>404 Page Not Found</div>} />

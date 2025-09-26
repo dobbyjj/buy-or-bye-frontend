@@ -1,7 +1,6 @@
 // src/components/ledger/LedgerEntryModal.jsx
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 // 💥 IoRemoveCircleOutline 만 사용하고 나머지는 제거 💥
 import { IoCloseOutline, IoRemoveCircleOutline } from 'react-icons/io5'; 
 // (다른 아이콘을 사용하지 않았으므로, IoCloseOutline와 IoRemoveCircleOutline만 남깁니다.) 
@@ -74,7 +73,7 @@ const DateEditButton = ({ onClick }) => (
 const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
     const [type, setType] = useState('지출');
     const [amount, setAmount] = useState('');
-    const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
+    const [selectedDate] = useState(initialDate || new Date());
     const [formData, setFormData] = useState({
         category: CATEGORIES['지출'][0].label,
         payment: '카드', // 👈 [2번 요청] 초기값 설정
@@ -91,7 +90,6 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
             payment: type === '지출' ? prev.payment : '', 
         }));
     }, [type]);
-
     // ----------------------------------------------------
     // [2번 요청] 결제 수단 선택 핸들러
     // ----------------------------------------------------
@@ -103,7 +101,7 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
     const handleDateEditClick = () => {
         alert('날짜/시간 선택 팝업창 (구현 예정)');
     }
-
+    
     // 키패드 입력 핸들러 (유지)
     const handleKeypadClick = (key) => {
         let newAmount = amount;
