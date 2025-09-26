@@ -29,6 +29,8 @@ function App() {
         <Route path="/asset" element={<div>자산 수정 (하단3)</div>} />
         <Route path="/chatbot" element={<ChatbotPage />} />
 
+        <Route path="/fixed-expense" element={<FixedExpense />} />
+
         {/* 404 페이지 */}
         <Route path="*" element={<div>404 Page Not Found</div>} />
       </Routes>
