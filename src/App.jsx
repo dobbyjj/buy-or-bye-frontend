@@ -1,14 +1,13 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-// 페이지 컴포넌트 임포트
 import HomePage from './pages/HomePage';
 import QuizPage from './pages/QuizPage';
-import ResultPage from './pages/ResultPage'; // (결과 페이지 경로도 확인)
+import ResultPage from './pages/ResultPage';
+import DashboardPage from './pages/DashboardPage';
+import ChatbotPage from './pages/ChatbotPage';
+import MyPage from './pages/MyPage';
+import FixedExpense from './pages/FixedExpense'; // 추가
 import LedgerPage from './pages/LedgerPage';
 import AnalysisPage from './pages/AnalysisPage';
-import DashboardPage from './pages/DashboardPage';
-import ChatbotPage from './pages/ChatbotPage'; // 👈 챗봇 페이지
 
 function App() {
   return (
@@ -25,7 +24,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} /> 
 
         {/* 💥 하단 네비게이션 바 경로들 (LedgerPage/AssetPage/ChatbotPage에서 사용) */}
-        <Route path="/mypage" element={<div>My Page (하단1)</div>} />
+        <Route path="/mypage" element={<MyPage/>} />
         <Route path="/ledger" element={<LedgerPage />} />
         <Route path="/asset" element={<div>자산 수정 (하단3)</div>} />
         <Route path="/chatbot" element={<ChatbotPage />} />
