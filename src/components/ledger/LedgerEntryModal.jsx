@@ -190,9 +190,13 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
                         <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>금액</label>
                         <div style={{ position: 'relative' }}>
                             <input
-                                type="number"
-                                value={getCurrentData().amount}
-                                onChange={(e) => updateCurrentData('amount', e.target.value)}
+                                type="text"
+                                value={getCurrentData().amount ? parseInt(getCurrentData().amount.replace(/[^0-9]/g, '') || '0', 10).toLocaleString('ko-KR') : ''}
+                                onChange={(e) => {
+                                    // 숫자만 추출
+                                    const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                    updateCurrentData('amount', numericValue);
+                                }}
                                 placeholder="금액을 입력하세요"
                                 style={{
                                     width: '100%',
