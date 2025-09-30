@@ -6,9 +6,9 @@ const CATEGORIES = {
         { label: '식비', icon: '🍽️' },
         { label: '쇼핑', icon: '🛍️' },
         { label: '교통', icon: '🚌' },
-        { label: '숙박', icon: '🏨' },
+        { label: '주거,관리비', icon: '🏡' },
         { label: '문화/여가', icon: '🎬' },
-        { label: '생활용품', icon: '🏠' },
+        { label: '생활용품', icon: '🧴' },
         { label: '기타', icon: '⚙️' },
     ],
     수입: [
@@ -27,365 +27,318 @@ const CATEGORIES = {
     ],
 };
 
-const formatDate = (date) => {
-    if (!date) return '';
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}.${month}.${day}`;
-};
-
-const InfoRow = ({ label, value, children }) => (
-    <div className="flex justify-between items-center py-4 border-b">
-        <span className="text-gray-500">{label}</span>
-        <div className="flex items-center">
-            <span className="font-semibold">{value}</span>
-            {children}
-        </div>
-    </div>
-);
-
-const DateEditButton = ({ onClick }) => (
-    <button 
-        onClick={onClick}
-        className="ml-2 text-sm text-indigo-500 hover:text-indigo-600">
-        편집
-    </button>
-);
-
 const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
-    const [type, setType] = useState(editingEntry ? (editingEntry.income > 0 ? '수입' : editingEntry.expense > 0 ? '지출' : '이체') : '지출');
-    const [amount, setAmount] = useState(editingEntry ? (editingEntry.income || editingEntry.expense || '').toString() : '');
-    const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
-    const [showCalendar, setShowCalendar] = useState(false);
-    const [calendarDate, setCalendarDate] = useState(new Date(selectedDate));
-    const [formData, setFormData] = useState({
-        category: editingEntry?.category || CATEGORIES['지출'][0].label,
-        payment: editingEntry?.payment || '카드',
-        memo: editingEntry?.memo || '', 
+    const [type, setType] = useState('지출');
+    
+    // 각 타입별로 별도의 상태 관리
+    const [expenseData, setExpenseData] = useState({
+        amount: '',
+        category: '',
+        payment: '',
+        memo: ''
     });
+    
+    const [incomeData, setIncomeData] = useState({
+        amount: '',
+        category: '',
+        memo: ''
+    });
+    
+    const [transferData, setTransferData] = useState({
+        amount: '',
+        category: '',
+        memo: ''
+    });
+    
+    const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
+    // 현재 타입에 따른 데이터 가져오기
+    const getCurrentData = () => {
+        switch (type) {
+            case '지출': return expenseData;
+            case '수입': return incomeData;
+            case '이체': return transferData;
+            default: return expenseData;
+        }
+    };
+
+    // 현재 타입에 따른 데이터 업데이트
+    const updateCurrentData = (field, value) => {
+        switch (type) {
+            case '지출':
+                setExpenseData(prev => ({ ...prev, [field]: value }));
+                break;
+            case '수입':
+                setIncomeData(prev => ({ ...prev, [field]: value }));
+                break;
+            case '이체':
+                setTransferData(prev => ({ ...prev, [field]: value }));
+                break;
+        }
+    };
 
     useEffect(() => {
         if (editingEntry) {
-            // 편집 모드: 기존 데이터 유지
-            setFormData(prev => ({ 
-                ...prev, 
-                category: editingEntry.category || CATEGORIES[type][0].label,
-                payment: editingEntry.payment || (type === '지출' ? '카드' : ''), 
-                memo: editingEntry.memo || ''
-            }));
-        } else {
-            // 새 항목 모드: 기본값 설정
-            const defaultCategory = CATEGORIES[type] ? CATEGORIES[type][0].label : '미분류';
-            setFormData(prev => ({ 
-                ...prev, 
-                category: defaultCategory,
-                payment: type === '지출' ? prev.payment : '', 
-            }));
+            const entryType = editingEntry.income > 0 ? '수입' : editingEntry.expense > 0 ? '지출' : '이체';
+            setType(entryType);
+            
+            const amount = String(editingEntry.income || editingEntry.expense || 0);
+            const category = editingEntry.category || '';
+            const memo = editingEntry.memo || '';
+            
+            if (entryType === '지출') {
+                setExpenseData({
+                    amount,
+                    category,
+                    payment: editingEntry.payment || '',
+                    memo
+                });
+            } else if (entryType === '수입') {
+                setIncomeData({
+                    amount,
+                    category,
+                    memo
+                });
+            } else if (entryType === '이체') {
+                setTransferData({
+                    amount,
+                    category,
+                    memo
+                });
+            }
+            
+            setSelectedDate(new Date(editingEntry.date));
         }
-    }, [type, editingEntry]);
+    }, [editingEntry]);
 
-    const handlePaymentSelect = (paymentType) => {
-        setFormData(prev => ({ ...prev, payment: paymentType }));
-    };
-
-    const handleDateEditClick = () => {
-        setShowCalendar(true);
-    };
-
-    const handleDateSelect = (date) => {
-        setSelectedDate(date);
-        setShowCalendar(false);
-    };
-
-    const Calendar = () => {
-        const year = calendarDate.getFullYear();
-        const month = calendarDate.getMonth();
-        const today = new Date();
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const currentData = getCurrentData();
         
-        const firstDayOfMonth = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
-        const days = [];
-        for (let i = 0; i < firstDayOfMonth; i++) {
-            days.push(null);
-        }
-        for (let i = 1; i <= daysInMonth; i++) {
-            days.push(i);
-        }
-        
-        const monthNames = [
-            '1월', '2월', '3월', '4월', '5월', '6월',
-            '7월', '8월', '9월', '10월', '11월', '12월'
-        ];
-        
-        const goToPrevMonth = () => {
-            setCalendarDate(new Date(year, month - 1, 1));
+        const parsedAmount = parseInt(currentData.amount) || 0;
+        const entryData = {
+            selectedDate,
+            amount: String(parsedAmount),
+            category: currentData.category,
+            payment: currentData.payment || '',
+            memo: currentData.memo,
+            type,
         };
-        
-        const goToNextMonth = () => {
-            setCalendarDate(new Date(year, month + 1, 1));
-        };
-        
-        return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-                    <div className="flex items-center justify-between mb-4">
-                        <button onClick={goToPrevMonth} className="p-2 hover:bg-gray-100 rounded">
-                            <MdKeyboardArrowLeft size={24} />
-                        </button>
-                        <h3 className="text-lg font-semibold">
-                            {year}년 {monthNames[month]}
-                        </h3>
-                        <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 rounded">
-                            <MdKeyboardArrowRight size={24} />
-                        </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-7 gap-1 mb-2">
-                        {['일', '월', '화', '수', '목', '금', '토'].map((dayName, index) => (
-                            <div key={dayName} className={`text-center text-sm font-medium py-2 ${
-                                index === 0 ? 'text-red-500' : index === 6 ? 'text-blue-500' : 'text-gray-700'
-                            }`}>
-                                {dayName}
-                            </div>
-                        ))}
-                    </div>
-                    
-                    <div className="grid grid-cols-7 gap-1">
-                        {days.map((day, index) => {
-                            if (day === null) {
-                                return <div key={index} className="h-10"></div>;
-                            }
-                            
-                            const isToday = year === today.getFullYear() && 
-                                           month === today.getMonth() && 
-                                           day === today.getDate();
-                            
-                            const isSelected = year === selectedDate.getFullYear() && 
-                                             month === selectedDate.getMonth() && 
-                                             day === selectedDate.getDate();
-                            
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => handleDateSelect(new Date(year, month, day))}
-                                    className={`h-10 rounded flex items-center justify-center text-sm transition-colors ${
-                                        isSelected 
-                                            ? 'bg-indigo-600 text-white' 
-                                            : isToday 
-                                                ? 'bg-indigo-100 text-indigo-600' 
-                                                : 'hover:bg-gray-100'
-                                    }`}
-                                >
-                                    {day}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    
-                    <div className="flex justify-end mt-4 space-x-2">
-                        <button 
-                            onClick={() => setShowCalendar(false)}
-                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
-                        >
-                            취소
-                        </button>
-                        <button 
-                            onClick={() => setShowCalendar(false)}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                        >
-                            확인
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-    
-    // 숫자 맨 앞에 0 입력 막기 (0은 첫 입력 불가, 이후에는 입력 가능)
-    const handleKeypadClick = (key) => {
-        let newAmount = amount;
-        if (key === 'DEL') {
-            newAmount = amount.slice(0, -1);
-        } else if (key === '+' || key === '-' || key === 'x' || key === '÷' || key === '=') {
-            return;
-        } else if (key === '000') {
-            if (amount === '' || amount === '0') return;
-            newAmount = amount + '000';
-        } else {
-        if ((key === '0' || key === '00') && amount === '') return;
-            newAmount = amount + key;
-        }
-        if (newAmount.length > 15) {
-            newAmount = amount;
-        }
-        setAmount(newAmount.replace(/[^0-9]/g, ''));
+
+        onSubmit(entryData);
     };
 
-    const handleSubmit = () => {
-        if (!amount || parseFloat(amount) <= 0) {
-            alert('금액을 입력해주세요.');
-            return;
-        }
-        if (type === '지출' && !formData.payment) {
-             alert('지출 내역은 결제 수단을 선택해주세요.');
-             return;
-        }
-        const dataToSubmit = {
-            selectedDate: selectedDate,
-            type: type,
-            amount: parseFloat(amount),
-            category: formData.category,
-            memo: formData.memo,
-            payment: formData.payment,
-        };
-        onSubmit(dataToSubmit);
-    };
 
-    const displayAmount = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-    // 0이 정상적으로 보이도록 키패드 배열 수정
-    const calculatorKeys = [
-        ['1', '2', '3', { label: <MdArrowBack size={24} />, value: 'DEL', className: 'bg-gray-200' }],
-        ['4', '5', '6', '+'],
-        ['7', '8', '9', '-'],
-        ['00', '0', '000', '='],
-    ];
-
-    const Keypad = () => (
-        <div className="grid grid-cols-4 w-full border-t">
-            {calculatorKeys.flat().map((key, index) => {
-                const keyLabel = typeof key === 'object' ? key.label : key;
-                const keyValue = typeof key === 'object' ? key.value : key;
-                const isOperator = ['+', '-', '='].includes(keyLabel);
-                const isDelete = keyValue === 'DEL';
-                return (
-                    <button
-                        key={index}
-                        onClick={() => handleKeypadClick(keyValue)}
-                        className={`flex items-center justify-center h-16 text-xl font-light transition 
-                                    ${isOperator || isDelete ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' : 'bg-white hover:bg-gray-50'}`}
-                    >
-                        {keyLabel}
-                    </button>
-                );
-            })}
-        </div>
-    );
 
     return (
-        <div
-            className="fixed inset-0 bg-white flex flex-col z-50"
-            style={{
+        <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        }}>
+            <div style={{
+                background: '#fff',
+                borderRadius: 16,
+                padding: 24,
+                width: '90%',
                 maxWidth: 768,
-                width: "100%",
-                margin: "0 auto",
-                height: "100vh",
-                background: "#fff",
-                paddingBottom: 80, // 네비게이션 바에 가리지 않도록 추가
-            }}
-        >
-            {/* 상단바 */}
-            <header className="flex justify-between items-center p-4 border-b">
-                <button onClick={onClose} className="text-gray-500 text-3xl font-bold">
-                    ←
-                </button>
-                <h2 className="text-lg font-bold">수입, 지출 입력</h2>
-                <button onClick={handleSubmit} className="text-indigo-600 font-semibold">
-                    완료
-                </button>
-            </header>
-
-            {/* 분류 탭 */}
-            <div className="p-6 pb-2 flex space-x-2">
-                {['지출', '수입', '이체'].map(t => (
-                    <button
-                        key={t}
-                        onClick={() => setType(t)}
-                        className={`px-4 py-2 rounded-full font-semibold transition 
-                                    ${type === t ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                    >
-                        {t}
+                maxHeight: '90vh',
+                overflow: 'auto'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}>
+                        <MdArrowBack />
                     </button>
-                ))}
-            </div>
-
-            {/* 금액 영역 */}
-            <div className="px-6 py-4 border-b">
-                <p className="text-lg text-gray-500">금액</p>
-                <div className="flex justify-between items-end">
-                    <span className="text-4xl font-light text-gray-900">{displayAmount || '0'}</span>
-                    <span className="text-xl font-semibold text-gray-700">원</span>
+                    <h2 style={{ margin: '0 auto', fontSize: 18, fontWeight: 700 }}>
+                        {editingEntry ? '수정하기' : '수입, 지출 입력'}
+                    </h2>
                 </div>
-            </div>
 
-            {/* 스크롤 가능한 상세 입력 영역 */}
-            <div className="flex-1 overflow-y-auto px-6 pt-4">
-                <div className="mb-6 py-2 border-b">
-                    <p className="text-gray-500 text-sm block mb-2">카테고리</p>
-                    <div className="flex flex-wrap gap-2">
-                        {CATEGORIES[type] && CATEGORIES[type].map(cat => (
+                <form onSubmit={handleSubmit}>
+                    {/* 타입 선택 */}
+                    <div style={{ display: 'flex', marginBottom: 16, gap: 8 }}>
+                        {['지출', '수입', '이체'].map((t) => (
                             <button
-                                key={cat.label}
-                                onClick={() => setFormData(prev => ({...prev, category: cat.label}))}
-                                className={`px-3 py-1 text-sm rounded-full transition 
-                                            ${formData.category === cat.label 
-                                                ? 'bg-indigo-500 text-white shadow-md' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
+                                key={t}
+                                type="button"
+                                onClick={() => setType(t)}
+                                style={{
+                                    flex: 1,
+                                    padding: '8px 16px',
+                                    border: 'none',
+                                    borderRadius: 20,
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    background: type === t ? '#4B4BFF' : '#f0f0f0',
+                                    color: type === t ? '#fff' : '#666'
+                                }}
                             >
-                                {cat.icon} {cat.label}
+                                {t}
                             </button>
                         ))}
                     </div>
-                </div>
 
-                {type === '지출' && (
-                    <div className="mb-6 py-2 border-b">
-                        <p className="text-gray-500 text-sm block mb-2">결제 수단</p>
-                        <div className="flex space-x-3">
-                            {['카드', '현금'].map(pType => (
+                    {/* 금액 입력 */}
+                    <div style={{ marginBottom: 16 }}>
+                        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>금액</label>
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                type="number"
+                                value={getCurrentData().amount}
+                                onChange={(e) => updateCurrentData('amount', e.target.value)}
+                                placeholder="금액을 입력하세요"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 40px 12px 16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: 8,
+                                    fontSize: 16,
+                                    textAlign: 'right',
+                                    background: '#fff',
+                                    outline: 'none'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#4B4BFF'}
+                                onBlur={(e) => e.target.style.borderColor = '#ddd'}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                right: 16,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                fontSize: 16,
+                                color: '#666'
+                            }}>
+                                원
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* 카테고리 선택 */}
+                    <div style={{ marginBottom: 16 }}>
+                        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>카테고리</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {CATEGORIES[type].map((cat) => (
                                 <button
-                                    key={pType}
-                                    onClick={() => handlePaymentSelect(pType)}
-                                    className={`px-4 py-1 text-sm rounded-full transition 
-                                                ${formData.payment === pType 
-                                                    ? 'bg-indigo-600 text-white shadow-md' 
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                }`}
+                                    key={cat.label}
+                                    type="button"
+                                    onClick={() => updateCurrentData('category', cat.label)}
+                                    style={{
+                                        padding: '8px 12px',
+                                        border: 'none',
+                                        borderRadius: 20,
+                                        fontSize: 14,
+                                        cursor: 'pointer',
+                                        background: getCurrentData().category === cat.label ? '#4B4BFF' : '#f0f0f0',
+                                        color: getCurrentData().category === cat.label ? '#fff' : '#666',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 4
+                                    }}
                                 >
-                                    {pType}
+                                    <span>{cat.icon}</span>
+                                    <span>{cat.label}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
-                )}
-                
-                <InfoRow 
-                    label="날짜" 
-                    value={formatDate(selectedDate)}
-                > 
-                    <DateEditButton onClick={handleDateEditClick} />
-                </InfoRow>
 
-                <div className="pt-4 mb-8">
-                    <label className="text-gray-500 text-xs block mb-1">메모 (선택)</label>
-                    <input
-                        type="text"
-                        value={formData.memo}
-                        onChange={(e) => setFormData(p => ({...p, memo: e.target.value}))}
-                        placeholder="거래처 또는 메모 입력"
-                        className="w-full focus:outline-none text-base border-b pb-1"
-                    />
-                </div>
+                    {/* 결제 수단 (지출일 때만) */}
+                    {type === '지출' && (
+                        <div style={{ marginBottom: 16 }}>
+                            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>결제 수단</label>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                {['카드', '현금'].map((p) => (
+                                    <button
+                                        key={p}
+                                        type="button"
+                                        onClick={() => updateCurrentData('payment', p)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '8px 16px',
+                                            border: 'none',
+                                            borderRadius: 8,
+                                            fontSize: 14,
+                                            cursor: 'pointer',
+                                            background: getCurrentData().payment === p ? '#4B4BFF' : '#f0f0f0',
+                                            color: getCurrentData().payment === p ? '#fff' : '#666'
+                                        }}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 날짜 선택 */}
+                    <div style={{ marginBottom: 16 }}>
+                        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>날짜</label>
+                        <input
+                            type="date"
+                            value={selectedDate.toISOString().split('T')[0]}
+                            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                border: '1px solid #ddd',
+                                borderRadius: 8,
+                                fontSize: 16,
+                                outline: 'none'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#4B4BFF'}
+                            onBlur={(e) => e.target.style.borderColor = '#ddd'}
+                        />
+                    </div>
+
+                    {/* 사용 내용 */}
+                    <div style={{ marginBottom: 16 }}>
+                        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>사용 내용</label>
+                        <input
+                            type="text"
+                            value={getCurrentData().memo}
+                            onChange={(e) => updateCurrentData('memo', e.target.value)}
+                            placeholder="사용 내용을 입력하세요"
+                            style={{
+                                width: '100%',
+                                padding: '12px 16px',
+                                border: '1px solid #ddd',
+                                borderRadius: 8,
+                                fontSize: 16,
+                                outline: 'none'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#4B4BFF'}
+                            onBlur={(e) => e.target.style.borderColor = '#ddd'}
+                        />
+                    </div>
+
+
+
+                    {/* 제출 버튼 */}
+                    <button
+                        type="submit"
+                        style={{
+                            width: '100%',
+                            padding: '14px 0',
+                            border: 'none',
+                            borderRadius: 8,
+                            fontSize: 16,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            background: '#4B4BFF',
+                            color: '#fff'
+                        }}
+                    >
+                        {editingEntry ? '수정하기' : '저장하기'}
+                    </button>
+                </form>
             </div>
-
-            <div className="border-t">
-                <Keypad />
-            </div>
-
-            {showCalendar && <Calendar />}
         </div>
     );
 };

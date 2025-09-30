@@ -42,5 +42,6 @@ app.post('/api/chat', async (req, res) => {
 
 // 4. 서버 실행
 app.listen(port, () => {
-  console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
+  const host = process.env.HOST || 'localhost';
+  console.log(`서버가 http://${host}:${port} 에서 실행 중입니다.`);
 });

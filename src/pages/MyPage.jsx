@@ -5,10 +5,10 @@ import BottomNavbar from "../components/common/BottomNavbar";
 
 // 예시: 로그인 상태 관리 (실제 앱에서는 context나 redux 등으로 관리)
 const mockUser = {
-  isLoggedIn: true,
-  email: "user@email.com",
-  id: "annayoo",
-  password: "Abcd1234!",
+  isLoggedIn: false,  // 초기에는 로그아웃 상태
+  email: "",
+  id: "",
+  password: "",
 };
 
 function MyPage() {
@@ -33,6 +33,11 @@ function MyPage() {
   const [signupEmailError, setSignupEmailError] = useState("");
   const [signupPwError, setSignupPwError] = useState("");
   const [emailChecked, setEmailChecked] = useState(false);
+
+  // 로그인 입력 상태
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
   // PW 유효성 검사: 문자, 숫자, 특수기호 혼합 8~15자
   const validatePw = (pw) => {
@@ -123,9 +128,37 @@ function MyPage() {
   };
 
   const handleLogin = () => {
-    // 실제 로그인 처리 추가
-    setIsLoggedIn(true);
-    alert("로그인 되었습니다.");
+    if (!loginEmail || !loginPassword) {
+      setLoginError('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    
+    // 간단한 로그인 검증 (실제 서비스에서는 서버 API 호출)
+    if (loginEmail === 'test@example.com' && loginPassword === 'password123') {
+      setLoginError('');
+      setEmail(loginEmail);
+      setId(loginEmail);
+      setPassword(loginPassword);
+      setIsLoggedIn(true);
+      setShowLoginModal(false);
+      setLoginEmail('');
+      setLoginPassword('');
+      alert('로그인 되었습니다.');
+    } else {
+      setLoginError('이메일 또는 비밀번호가 올바르지 않습니다.');
+    }
+  };
+
+  const handleOpenLoginModal = () => {
+    setShowLoginModal(true);
+    setLoginError('');
+  };
+
+  const handleCloseLoginModal = () => {
+    setShowLoginModal(false);
+    setLoginEmail('');
+    setLoginPassword('');
+    setLoginError('');
   };
 
   return (
@@ -177,7 +210,7 @@ function MyPage() {
               if (isLoggedIn) {
                 setShowLoginModal(true);
               } else {
-                handleLogin();
+                handleOpenLoginModal();
               }
             }}
           >
@@ -259,6 +292,152 @@ function MyPage() {
           </div>
         </section>
       </main>
+      
+      {/* 로그인하기 모달 */}
+      {showLoginModal && !isLoggedIn && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={handleCloseLoginModal}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+              padding: "32px 28px 28px 28px",
+              minWidth: 320,
+              maxWidth: 400,
+              width: "90%",
+              textAlign: "center",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 닫기 X 아이콘 */}
+            <button
+              onClick={handleCloseLoginModal}
+              style={{
+                position: "absolute",
+                top: 18,
+                right: 18,
+                background: "none",
+                border: "none",
+                fontSize: 26,
+                color: "#888",
+                cursor: "pointer",
+                zIndex: 10,
+              }}
+              aria-label="닫기"
+            >
+              <IoClose />
+            </button>
+            
+            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>로그인</h3>
+            
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>이메일 주소</div>
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="이메일을 입력하세요"
+                style={{
+                  width: "100%",
+                  fontSize: 16,
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>비밀번호</div>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                style={{
+                  width: "100%",
+                  fontSize: 16,
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleLogin();
+                  }
+                }}
+              />
+            </div>
+            
+            {loginError && (
+              <div style={{
+                color: "#ef4444",
+                fontSize: 14,
+                marginBottom: 16,
+                textAlign: "left"
+              }}>
+                {loginError}
+              </div>
+            )}
+            
+            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+              <button
+                onClick={handleCloseLoginModal}
+                style={{
+                  flex: 1,
+                  background: "#f5f5f5",
+                  color: "#666",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleLogin}
+                style={{
+                  flex: 1,
+                  background: "#4B4BFF",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}
+              >
+                로그인
+              </button>
+            </div>
+            
+            <div style={{ marginTop: 16, fontSize: 14, color: "#888" }}>
+              테스트용: test@example.com / password123
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* 로그인 정보 모달 */}
       {showLoginModal && isLoggedIn && (
         <div

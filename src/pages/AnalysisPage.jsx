@@ -10,7 +10,13 @@ const initialFinancialData = {
   depositAmount: '',
   otherInvestments: '',
   monthlyIncome: '',
-  fixedExpenses: '',
+  foodExpense: '',
+  shoppingExpense: '',
+  transportExpense: '',
+  housingExpense: '',
+  cultureExpense: '',
+  dailyGoodsExpense: '',
+  otherExpense: '',
 };
 
 const AnalysisPage = () => {
@@ -21,7 +27,7 @@ const AnalysisPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    if (name === 'age' || name.includes('Value') || name.includes('Amount') || name.includes('Investments') || name.includes('Income') || name.includes('Expenses')) {
+    if (name === 'age' || name.includes('Value') || name.includes('Amount') || name.includes('Investments') || name.includes('Income') || name.includes('Expense')) {
       // 숫자 필드의 경우 콤마를 제거하고 숫자만 추출
       const cleanedValue = value.replace(/[^0-9]/g, '');
       setFormData(prev => ({ ...prev, [name]: cleanedValue }));
@@ -228,8 +234,14 @@ const AnalysisPage = () => {
     <div style={{ padding: 24 }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>3/3. 월 수입과 비용을 입력해주세요.</h2>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
-        <NumberInput label="월 수입 (세후)" name="monthlyIncome" value={formData.monthlyIncome} placeholder="매월 벌어들이는 총 금액을 입력" />
-        <NumberInput label="월 고정비" name="fixedExpenses" value={formData.fixedExpenses} placeholder="월세, 보험료, 통신비 등 고정 지출 금액을 입력" />
+        <NumberInput label="월 수입" name="monthlyIncome" value={formData.monthlyIncome} placeholder="매월 벌어들이는 총 금액을 입력" />
+        <NumberInput label="식비" name="foodExpense" value={formData.foodExpense} placeholder="식비 관련 지출 금액을 입력" />
+        <NumberInput label="쇼핑" name="shoppingExpense" value={formData.shoppingExpense} placeholder="쇼핑 관련 지출 금액을 입력" />
+        <NumberInput label="교통" name="transportExpense" value={formData.transportExpense} placeholder="교통비 관련 지출 금액을 입력" />
+        <NumberInput label="주거/관리비" name="housingExpense" value={formData.housingExpense} placeholder="주거 및 관리비 관련 지출 금액을 입력" />
+        <NumberInput label="문화/여가" name="cultureExpense" value={formData.cultureExpense} placeholder="문화/여가 관련 지출 금액을 입력" />
+        <NumberInput label="생활용품" name="dailyGoodsExpense" value={formData.dailyGoodsExpense} placeholder="생활용품 관련 지출 금액을 입력" />
+        <NumberInput label="기타" name="otherExpense" value={formData.otherExpense} placeholder="기타 지출 금액을 입력" />
         <button type="submit" style={{
           width: "100%",
           marginTop: 24,

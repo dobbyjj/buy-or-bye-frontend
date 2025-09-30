@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import BottomNavbar from '../components/common/BottomNavbar';
 import LedgerEntryModal from '../components/ledger/LedgerEntryModal';
-import { IoAdd } from 'react-icons/io5';
+import { IoAdd, IoClose } from 'react-icons/io5';
 import { MdArrowBack, MdEdit } from 'react-icons/md'; // 좌측 화살표 아이콘, 편집 아이콘
 
 const years = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
@@ -30,6 +30,12 @@ const LedgerPage = () => {
   ]);
   const [modalDate, setModalDate] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
+  
+  // 로그인 관련 상태
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   // 연도/월 선택 핸들러
   const handleYearChange = (e) => {
@@ -57,6 +63,32 @@ const LedgerPage = () => {
     const entryDate = new Date(entry.date);
     setModalDate(entryDate);
     setEditingEntry({ ...entry, index: entryIndex });
+  };
+
+  // 로그인 처리 함수들
+  const handleLogin = () => {
+    if (!loginEmail || !loginPassword) {
+      setLoginError('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    
+    // 간단한 로그인 검증 (실제 서비스에서는 서버 API 호출)
+    if (loginEmail === 'test@example.com' && loginPassword === 'password') {
+      setLoginError('');
+      setShowLoginModal(false);
+      setLoginEmail('');
+      setLoginPassword('');
+      alert('로그인 되었습니다.');
+    } else {
+      setLoginError('이메일 또는 비밀번호가 올바르지 않습니다.');
+    }
+  };
+
+  const handleLoginModalClose = () => {
+    setShowLoginModal(false);
+    setLoginEmail('');
+    setLoginPassword('');
+    setLoginError('');
   };
   const handleEntrySubmit = (data) => {
     // 숫자 맨 앞에 0 입력 막기 (첫 숫자가 0이면 무시)
@@ -257,37 +289,57 @@ const LedgerPage = () => {
           padding: "24px 8px",
         }}
       >
-        <h1 style={{ textAlign: "center", fontSize: "clamp(20px, 4vw, 28px)", fontWeight: 700, color: "#222", marginBottom: 24 }}>가계부</h1>
-        {/* 연도/월 선택 */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-          <select
-            value={selectedYear}
-            onChange={handleYearChange}
-            style={{ fontSize: 16, padding: "6px 12px", borderRadius: 8, border: "1px solid #ddd" }}
-          >
-            {years.map(year => (
-              <option key={year} value={year}>{year}년</option>
-            ))}
-          </select>
-          <select
-            value={selectedMonth}
-            onChange={handleMonthChange}
-            style={{ fontSize: 16, padding: "6px 12px", borderRadius: 8, border: "1px solid #ddd" }}
-          >
-            {months.map(month => (
-              <option key={month} value={month}>{month}</option>
-            ))}
-          </select>
+        <h1 style={{ 
+          textAlign: "center", 
+          fontSize: "clamp(20px, 4vw, 28px)", 
+          fontWeight: 700, 
+          color: "#222", 
+          marginBottom: 24 
+        }}>
+          가계부
+        </h1>
+        
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 2px 8px #eee",
+            padding: "24px 16px",
+            marginBottom: 24,
+            border: "1px solid #eee",
+          }}
+        >
+          {/* 연도/월 선택 */}
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <select
+              value={selectedYear}
+              onChange={handleYearChange}
+              style={{ fontSize: 16, padding: "6px 12px", borderRadius: 8, border: "1px solid #ddd" }}
+            >
+              {years.map(year => (
+                <option key={year} value={year}>{year}년</option>
+              ))}
+            </select>
+            <select
+              value={selectedMonth}
+              onChange={handleMonthChange}
+              style={{ fontSize: 16, padding: "6px 12px", borderRadius: 8, border: "1px solid #ddd" }}
+            >
+              {months.map(month => (
+                <option key={month} value={month}>{month}</option>
+              ))}
+            </select>
+          </div>
+          {/* 수입/지출 합계 */}
+          <div style={{ marginBottom: 24, fontSize: 18, fontWeight: 600 }}>
+            <span style={{ color: "#3B82F6", marginRight: 24 }}>수입: {formatCurrency(monthlySummary.income)}원</span>
+            <span style={{ color: "#EF4444" }}>지출: {formatCurrency(monthlySummary.expense)}원</span>
+          </div>
+          {/* 달력 */}
+          {renderCalendar()}
+          {/* 상세 내역 */}
+          {renderDayEntries()}
         </div>
-        {/* 수입/지출 합계 */}
-        <div style={{ marginBottom: 24, fontSize: 18, fontWeight: 600 }}>
-          <span style={{ color: "#3B82F6", marginRight: 24 }}>수입: {formatCurrency(monthlySummary.income)}원</span>
-          <span style={{ color: "#EF4444" }}>지출: {formatCurrency(monthlySummary.expense)}원</span>
-        </div>
-        {/* 달력 */}
-        {renderCalendar()}
-        {/* 상세 내역 */}
-        {renderDayEntries()}
       </div>
       {/* 수입/지출 입력, 고정비 지출 수정 버튼 */}
       <div style={{ position: "fixed", right: 24, bottom: 150, display: "flex", flexDirection: "column", alignItems: "center", zIndex: 20 }}>
@@ -349,6 +401,152 @@ const LedgerPage = () => {
           transferCategories={transferCategories} // 이체 항목 전달
         />
       )}
+      
+      {/* 로그인 모달 */}
+      {showLoginModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={handleLoginModalClose}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
+              padding: "32px 28px 28px 28px",
+              minWidth: 320,
+              maxWidth: 400,
+              width: "90%",
+              textAlign: "center",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 닫기 X 아이콘 */}
+            <button
+              onClick={handleLoginModalClose}
+              style={{
+                position: "absolute",
+                top: 18,
+                right: 18,
+                background: "none",
+                border: "none",
+                fontSize: 26,
+                color: "#888",
+                cursor: "pointer",
+                zIndex: 10,
+              }}
+              aria-label="닫기"
+            >
+              <IoClose />
+            </button>
+            
+            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>로그인</h3>
+            
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>이메일 주소</div>
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="이메일을 입력하세요"
+                style={{
+                  width: "100%",
+                  fontSize: 16,
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>비밀번호</div>
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                style={{
+                  width: "100%",
+                  fontSize: 16,
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: 8,
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleLogin();
+                  }
+                }}
+              />
+            </div>
+            
+            {loginError && (
+              <div style={{
+                color: "#ef4444",
+                fontSize: 14,
+                marginBottom: 16,
+                textAlign: "left"
+              }}>
+                {loginError}
+              </div>
+            )}
+            
+            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+              <button
+                onClick={handleLoginModalClose}
+                style={{
+                  flex: 1,
+                  background: "#f5f5f5",
+                  color: "#666",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleLogin}
+                style={{
+                  flex: 1,
+                  background: "#4B4BFF",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}
+              >
+                로그인
+              </button>
+            </div>
+            
+            <div style={{ marginTop: 16, fontSize: 14, color: "#888" }}>
+              테스트용: test@example.com / password
+            </div>
+          </div>
+        </div>
+      )}
+      
       <BottomNavbar active="ledger" />
     </div>
   );
