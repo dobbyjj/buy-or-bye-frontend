@@ -25,12 +25,12 @@ const DashboardPage = () => {
     };
 
     const [assetChartData, setAssetChartData] = useState({
-        ratio: { labels: ['예금', '투자', '현금', '부동산'], datasets: [{ data: [500, 350, 50, 350], backgroundColor: ['#14B8A6', '#3B82F6', '#FBBF24', '#EF4444'], borderWidth: 0 }] },
+        ratio: { labels: ['부동산', '대출', '예금/현금', '기타 자산'], datasets: [{ data: [500, 200, 350, 200], backgroundColor: ['#EF4444', '#F59E0B', '#14B8A6', '#3B82F6'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '자산', data: [1250, 0, 1500], backgroundColor: '#3B82F6' }] },
         yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 자산', data: [1000, 1150, 1200, 1100, 1250, 1300], borderColor: '#10B981', tension: 0.3, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.2)' }] },
     });
     const [expenseChartData, setExpenseChartData] = useState({
-        monthly: { labels: ['식비', '교통', '쇼핑', '문화', '기타'], datasets: [{ data: [350, 150, 100, 129, 100], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'], borderWidth: 0 }] },
+        monthly: { labels: ['식비', '쇼핑', '교통', '주거/관리', '문화/여가', '화장품', '기타'], datasets: [{ data: [350, 100, 150, 200, 129, 80, 90], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '지출', data: [829, 0, 650], backgroundColor: '#FF6384' }] },
         yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 지출', data: [750, 800, 780, 900, 829, 700], borderColor: '#EF4444', tension: 0.3, fill: false }] },
     });
@@ -101,7 +101,7 @@ const DashboardPage = () => {
             title: '총 지출 현황',
             data: expenseChartData,
             color: 'text-red-500',
-            chart1: { type: Doughnut, title: '월별 지출 레이블', source: expenseChartData.monthly },
+            chart1: { type: Doughnut, title: '월별 지출 비율', source: expenseChartData.monthly },
             chart2: { type: Bar, title: '동 연령 평균 및 재무 목표 비교', source: expenseChartData.comparison },
             chart3: { type: Line, title: '1년 지출 추이', source: expenseChartData.yearly }
         },
@@ -109,7 +109,7 @@ const DashboardPage = () => {
             title: '총 수입 현황',
             data: incomeChartData,
             color: 'text-blue-500',
-            chart1: { type: Doughnut, title: '월별 수입 레이블', source: incomeChartData.monthly },
+            chart1: { type: Doughnut, title: '월별 수입 비율', source: incomeChartData.monthly },
             chart2: { type: Bar, title: '동 연령 평균 및 재무 목표 비교', source: incomeChartData.comparison },
             chart3: { type: Line, title: '1년 수입 추이', source: incomeChartData.yearly }
         },
@@ -304,28 +304,31 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
                 )}
             </div>
             {isDoughnut ? (
-                <div style={{ display: "flex", alignItems: "flex-start", height: 220 }}>
-                    <div style={{ width: "50%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ width: "100%", height: "100%" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", height: 320, minHeight: 320 }}>
+                    <div style={{ width: "35%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ width: "270px", height: "270px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <ChartComponent data={config.source} options={options} />
                         </div>
                     </div>
-                    <div style={{ width: "50%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: 16 }}>
-                        <p style={{ fontSize: 15, fontWeight: 600, color: "#222" }}>자산 총액</p>
+                    <div style={{ width: "65%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: "16px 16px 16px 20px" }}>
+                        <p style={{ fontSize: 15, fontWeight: 600, color: "#222" }}>
+                            {config.title.includes('자산') ? '자산 총액' : 
+                             config.title.includes('지출') ? '지출 총액' : '수입 총액'}
+                        </p>
                         {/* 자산 금액 옆에 단위(만원) 추가 */}
                         <p style={{ fontSize: 22, fontWeight: 800, color: "#4B4BFF", marginBottom: 12 }}>
                             {formatCurrencyDisplay(totalAmount)} <span style={{ fontSize: 16, color: "#888", fontWeight: 500 }}>만원</span>
                         </p>
-                        <div>
+                        <div style={{ overflowY: "auto", maxHeight: "220px" }}>
                             {dataLabels.map((label, index) => {
                                 const value = dataValues[index];
                                 const color = dataColors[index];
                                 const percentage = ((value / totalAmount) * 100).toFixed(0);
                                 return (
-                                    <div key={label} style={{ display: "flex", alignItems: "center", fontSize: 14, marginBottom: 6 }}>
-                                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginRight: 8, background: color, display: "inline-block" }}></span>
-                                        <span style={{ fontWeight: 500, color: "#555" }}>{label}</span>
-                                        <span style={{ marginLeft: "auto", fontWeight: 700, color }}>{formatCurrencyDisplay(value)} ({percentage}%)</span>
+                                    <div key={label} style={{ display: "flex", alignItems: "center", fontSize: 13, marginBottom: 8, flexWrap: "wrap" }}>
+                                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginRight: 8, background: color, display: "inline-block", flexShrink: 0 }}></span>
+                                        <span style={{ fontWeight: 500, color: "#555", minWidth: "fit-content", marginRight: "auto" }}>{label}</span>
+                                        <span style={{ fontWeight: 700, color, whiteSpace: "nowrap" }}>{formatCurrencyDisplay(value)} ({percentage}%)</span>
                                     </div>
                                 );
                             })}
