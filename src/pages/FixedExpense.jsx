@@ -11,9 +11,18 @@ function FixedExpense() {
   const [account, setAccount] = useState("card");
   const [category, setCategory] = useState("식비");
   const [cycle, setCycle] = useState("월간");
+  const [startYear, setStartYear] = useState("2025");
+  const [startMonth, setStartMonth] = useState("09");
+  const [startDay, setStartDay] = useState("01");
   const [endYear, setEndYear] = useState("2025");
   const [endMonth, setEndMonth] = useState("09");
   const [endDay, setEndDay] = useState("01");
+
+  // 금액 입력 시 숫자만 허용
+  const handleAmountChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setAmount(value);
+  };
 
   const handleSave = () => {
     // 실제 저장 로직 구현
@@ -77,12 +86,12 @@ function FixedExpense() {
         }}
       >
         <div style={{ marginBottom: 18 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>발생일 1일</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>지출 내용</div>
           <input
             type="text"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="금액 입력"
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            placeholder="ex) 장보기"
             style={{
               width: "100%",
               fontSize: 16,
@@ -92,11 +101,12 @@ function FixedExpense() {
               marginBottom: 12,
             }}
           />
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>금액</div>
           <input
             type="text"
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-            placeholder="ex) 장보기"
+            value={amount}
+            onChange={handleAmountChange}
+            placeholder="금액 입력 (숫자만)"
             style={{
               width: "100%",
               fontSize: 16,
@@ -140,7 +150,7 @@ function FixedExpense() {
                 cursor: "pointer",
               }}
             >
-              <span role="img" aria-label="현금">💵 현금</span>
+              <span role="img" aria-label="현금(및 예금)">💵 현금(및 예금)</span>
             </button>
           </div>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>분류</div>
@@ -182,50 +192,113 @@ function FixedExpense() {
             <option value="주간">주간</option>
             <option value="연간">연간</option>
           </select>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>시작 일자</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+            <input
+              type="text"
+              value={startYear}
+              onChange={(e) => setStartYear(e.target.value)}
+              placeholder="2025"
+              maxLength={4}
+              style={{
+                width: 80,
+                fontSize: 16,
+                padding: "12px 8px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                textAlign: "center",
+                fontWeight: 500,
+              }}
+            />
+            <span style={{ fontSize: 14, color: "#666", margin: "0 4px" }}>년</span>
+            <input
+              type="text"
+              value={startMonth}
+              onChange={(e) => setStartMonth(e.target.value)}
+              placeholder="09"
+              maxLength={2}
+              style={{
+                width: 60,
+                fontSize: 16,
+                padding: "12px 8px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                textAlign: "center",
+                fontWeight: 500,
+              }}
+            />
+            <span style={{ fontSize: 14, color: "#666", margin: "0 4px" }}>월</span>
+            <input
+              type="text"
+              value={startDay}
+              onChange={(e) => setStartDay(e.target.value)}
+              placeholder="01"
+              maxLength={2}
+              style={{
+                width: 60,
+                fontSize: 16,
+                padding: "12px 8px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                textAlign: "center",
+                fontWeight: 500,
+              }}
+            />
+            <span style={{ fontSize: 14, color: "#666", margin: "0 4px" }}>일</span>
+          </div>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>종료 일자</div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
             <input
               type="text"
               value={endYear}
               onChange={(e) => setEndYear(e.target.value)}
+              placeholder="2025"
+              maxLength={4}
               style={{
-                width: 70,
+                width: 80,
                 fontSize: 16,
-                padding: "8px",
+                padding: "12px 8px",
                 borderRadius: 8,
                 border: "1px solid #ddd",
                 textAlign: "center",
+                fontWeight: 500,
               }}
-              maxLength={4}
             />
+            <span style={{ fontSize: 14, color: "#666", margin: "0 4px" }}>년</span>
             <input
               type="text"
               value={endMonth}
               onChange={(e) => setEndMonth(e.target.value)}
+              placeholder="09"
+              maxLength={2}
               style={{
-                width: 50,
+                width: 60,
                 fontSize: 16,
-                padding: "8px",
+                padding: "12px 8px",
                 borderRadius: 8,
                 border: "1px solid #ddd",
                 textAlign: "center",
+                fontWeight: 500,
               }}
-              maxLength={2}
             />
+            <span style={{ fontSize: 14, color: "#666", margin: "0 4px" }}>월</span>
             <input
               type="text"
               value={endDay}
               onChange={(e) => setEndDay(e.target.value)}
+              placeholder="01"
+              maxLength={2}
               style={{
-                width: 50,
+                width: 60,
                 fontSize: 16,
-                padding: "8px",
+                padding: "12px 8px",
                 borderRadius: 8,
                 border: "1px solid #ddd",
                 textAlign: "center",
+                fontWeight: 500,
               }}
-              maxLength={2}
             />
+            <span style={{ fontSize: 14, color: "#666", margin: "0 4px" }}>일</span>
           </div>
           <button
             type="button"

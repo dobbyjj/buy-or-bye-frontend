@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import BottomNavbar from '../components/common/BottomNavbar';
 import LedgerEntryModal from '../components/ledger/LedgerEntryModal';
 import { IoAdd } from 'react-icons/io5';
-import { MdArrowBack } from 'react-icons/md'; // 좌측 화살표 아이콘
+import { MdArrowBack, MdEdit } from 'react-icons/md'; // 좌측 화살표 아이콘, 편집 아이콘
 
 const years = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
 const months = [
@@ -29,6 +29,7 @@ const LedgerPage = () => {
     { date: '2025-05-26', income: 0, expense: 3000, memo: '간식' },
   ]);
   const [modalDate, setModalDate] = useState(null);
+  const [editingEntry, setEditingEntry] = useState(null);
 
   // 연도/월 선택 핸들러
   const handleYearChange = (e) => {
@@ -49,6 +50,13 @@ const LedgerPage = () => {
   };
   const handleCloseModal = () => {
     setModalDate(null);
+    setEditingEntry(null);
+  };
+  
+  const handleEditEntry = (entry, entryIndex) => {
+    const entryDate = new Date(entry.date);
+    setModalDate(entryDate);
+    setEditingEntry({ ...entry, index: entryIndex });
   };
   const handleEntrySubmit = (data) => {
     // 숫자 맨 앞에 0 입력 막기 (첫 숫자가 0이면 무시)
@@ -72,7 +80,18 @@ const LedgerPage = () => {
       payment: data.payment,
       transfer: data.transfer || null,
     };
-    setLedgerEntries(prev => [...prev, newEntry]);
+
+    if (editingEntry) {
+      // 편집 모드: 기존 항목 수정
+      setLedgerEntries(prev => 
+        prev.map((entry, index) => 
+          index === editingEntry.index ? newEntry : entry
+        )
+      );
+    } else {
+      // 추가 모드: 새 항목 추가
+      setLedgerEntries(prev => [...prev, newEntry]);
+    }
     handleCloseModal();
   };
 
@@ -176,24 +195,37 @@ const LedgerPage = () => {
       <h3 className="text-lg font-bold text-gray-700 mb-4">{selectedYear}년 {selectedMonth} {selectedDay}일 상세 내역</h3>
       {selectedDayEntries.length > 0 ? (
         <div className="space-y-3">
-          {selectedDayEntries.map((entry, index) => (
-            <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg shadow-sm">
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-gray-800">{entry.memo || '내용 없음'}</span>
-                <span className="text-xs text-gray-500">
-                  {entry.category || entry.type} ({entry.payment || '없음'})
-                  {entry.transfer ? ` / 이체: ${entry.transfer}` : ""}
+          {selectedDayEntries.map((entry, dayIndex) => {
+            // 전체 ledgerEntries에서 해당 항목의 실제 인덱스 찾기
+            const realIndex = ledgerEntries.findIndex(ledgerEntry => 
+              ledgerEntry.date === entry.date && 
+              ledgerEntry.memo === entry.memo && 
+              ledgerEntry.income === entry.income && 
+              ledgerEntry.expense === entry.expense
+            );
+            
+            return (
+              <div key={dayIndex} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg shadow-sm">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-800">{entry.memo || '내용 없음'}</span>
+                  <span className="text-xs text-gray-500">
+                    {entry.category || entry.type} ({entry.payment || '없음'})
+                    {entry.transfer ? ` / 이체: ${entry.transfer}` : ""}
+                  </span>
+                </div>
+                <span className={`font-semibold text-lg ${entry.income > 0 ? 'text-blue-600' : 'text-red-500'}`}>
+                  {entry.income > 0 ? `+${formatCurrency(entry.income)}원` : `-${formatCurrency(entry.expense)}원`}
                 </span>
+                {/* 편집 아이콘으로 변경 */}
+                <button 
+                  className="text-sm text-gray-400 hover:text-indigo-600 transition-colors"
+                  onClick={() => handleEditEntry(entry, realIndex)}
+                >
+                  <MdEdit size={20} />
+                </button>
               </div>
-              <span className={`font-semibold text-lg ${entry.income > 0 ? 'text-blue-600' : 'text-red-500'}`}>
-                {entry.income > 0 ? `+${formatCurrency(entry.income)}원` : `-${formatCurrency(entry.expense)}원`}
-              </span>
-              {/* 금액 수정 아이콘을 좌로 가는 화살표로 변경 */}
-              <button className="text-sm text-gray-400 hover:text-gray-600">
-                <MdArrowBack size={22} />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="text-center text-gray-500 py-10">선택된 날짜에는 내역이 없습니다.</p>
@@ -311,6 +343,7 @@ const LedgerPage = () => {
       {modalDate && (
         <LedgerEntryModal
           initialDate={modalDate}
+          editingEntry={editingEntry}
           onSubmit={handleEntrySubmit}
           onClose={handleCloseModal}
           transferCategories={transferCategories} // 이체 항목 전달

@@ -31,12 +31,12 @@ const DashboardPage = () => {
     });
     const [expenseChartData, setExpenseChartData] = useState({
         monthly: { labels: ['식비', '교통', '쇼핑', '문화', '기타'], datasets: [{ data: [350, 150, 100, 129, 100], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'], borderWidth: 0 }] },
-        comparison: { labels: ['나', '동 연령 목표', '동 연령 평균'], datasets: [{ label: '지출', data: [829, 650, 0], backgroundColor: '#FF6384' }] },
+        comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '지출', data: [829, 0, 650], backgroundColor: '#FF6384' }] },
         yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 지출', data: [750, 800, 780, 900, 829, 700], borderColor: '#EF4444', tension: 0.3, fill: false }] },
     });
     const [incomeChartData, setIncomeChartData] = useState({
         monthly: { labels: ['월급', '투자수익', '부수입'], datasets: [{ data: [1000, 100, 100], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24'], borderWidth: 0 }] },
-        comparison: { labels: ['나', '동 연령 목표', '동 연령 평균'], datasets: [{ label: '수입', data: [1200, 1500, 0], backgroundColor: '#22C55E' }] },
+        comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '수입', data: [1200, 0, 1500], backgroundColor: '#22C55E' }] },
         yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 수입', data: [1100, 1250, 1200, 1300, 1200, 1400], borderColor: '#22C55E', tension: 0.3, fill: false }] },
     });
 
@@ -76,14 +76,14 @@ const DashboardPage = () => {
             ...prevData,
             comparison: {
                 ...prevData.comparison,
-                datasets: [{ ...prevData.comparison.datasets[0], data: [829, 650, ageGroupAverage.expense] }]
+                datasets: [{ ...prevData.comparison.datasets[0], data: [829, ageGroupAverage.expense, 650] }]
             }
         }));
         setIncomeChartData(prevData => ({
             ...prevData,
             comparison: {
                 ...prevData.comparison,
-                datasets: [{ ...prevData.comparison.datasets[0], data: [1200, 1500, ageGroupAverage.income] }]
+                datasets: [{ ...prevData.comparison.datasets[0], data: [1200, ageGroupAverage.income, 1500] }]
             }
         }));
     }, [ageGroupAverage]);
@@ -94,7 +94,7 @@ const DashboardPage = () => {
             data: assetChartData,
             color: 'text-green-600',
             chart1: { type: Doughnut, title: '전체 자산 비율', source: assetChartData.ratio },
-            chart2: { type: Bar, title: '동 연령 비교', source: assetChartData.comparison },
+            chart2: { type: Bar, title: '동 연령 평균 및 재무 목표 비교', source: assetChartData.comparison },
             chart3: { type: Line, title: '1년 자산 추이', source: assetChartData.yearly }
         },
         expense: {
@@ -102,7 +102,7 @@ const DashboardPage = () => {
             data: expenseChartData,
             color: 'text-red-500',
             chart1: { type: Doughnut, title: '월별 지출 레이블', source: expenseChartData.monthly },
-            chart2: { type: Bar, title: '동 연령 vs 목표 지출 비교', source: expenseChartData.comparison },
+            chart2: { type: Bar, title: '동 연령 평균 및 재무 목표 비교', source: expenseChartData.comparison },
             chart3: { type: Line, title: '1년 지출 추이', source: expenseChartData.yearly }
         },
         income: {
@@ -110,7 +110,7 @@ const DashboardPage = () => {
             data: incomeChartData,
             color: 'text-blue-500',
             chart1: { type: Doughnut, title: '월별 수입 레이블', source: incomeChartData.monthly },
-            chart2: { type: Bar, title: '동 연령 vs 목표 수입 비교', source: incomeChartData.comparison },
+            chart2: { type: Bar, title: '동 연령 평균 및 재무 목표 비교', source: incomeChartData.comparison },
             chart3: { type: Line, title: '1년 수입 추이', source: incomeChartData.yearly }
         },
     };

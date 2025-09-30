@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MdArrowBack } from 'react-icons/md';
+import { MdArrowBack, MdKeyboardArrowLeft, MdKeyboardArrowRight } from 'react-icons/md';
 
 const CATEGORIES = {
     지출: [
@@ -53,32 +53,155 @@ const DateEditButton = ({ onClick }) => (
     </button>
 );
 
-const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
-    const [type, setType] = useState('지출');
-    const [amount, setAmount] = useState('');
-    const [selectedDate] = useState(initialDate || new Date());
+const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
+    const [type, setType] = useState(editingEntry ? (editingEntry.income > 0 ? '수입' : editingEntry.expense > 0 ? '지출' : '이체') : '지출');
+    const [amount, setAmount] = useState(editingEntry ? (editingEntry.income || editingEntry.expense || '').toString() : '');
+    const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [calendarDate, setCalendarDate] = useState(new Date(selectedDate));
     const [formData, setFormData] = useState({
-        category: CATEGORIES['지출'][0].label,
-        payment: '카드',
-        memo: '', 
+        category: editingEntry?.category || CATEGORIES['지출'][0].label,
+        payment: editingEntry?.payment || '카드',
+        memo: editingEntry?.memo || '', 
     });
 
     useEffect(() => {
-        const defaultCategory = CATEGORIES[type] ? CATEGORIES[type][0].label : '미분류';
-        setFormData(prev => ({ 
-            ...prev, 
-            category: defaultCategory,
-            payment: type === '지출' ? prev.payment : '', 
-        }));
-    }, [type]);
+        if (editingEntry) {
+            // 편집 모드: 기존 데이터 유지
+            setFormData(prev => ({ 
+                ...prev, 
+                category: editingEntry.category || CATEGORIES[type][0].label,
+                payment: editingEntry.payment || (type === '지출' ? '카드' : ''), 
+                memo: editingEntry.memo || ''
+            }));
+        } else {
+            // 새 항목 모드: 기본값 설정
+            const defaultCategory = CATEGORIES[type] ? CATEGORIES[type][0].label : '미분류';
+            setFormData(prev => ({ 
+                ...prev, 
+                category: defaultCategory,
+                payment: type === '지출' ? prev.payment : '', 
+            }));
+        }
+    }, [type, editingEntry]);
 
     const handlePaymentSelect = (paymentType) => {
         setFormData(prev => ({ ...prev, payment: paymentType }));
     };
 
     const handleDateEditClick = () => {
-        alert('날짜/시간 선택 팝업창 (구현 예정)');
-    }
+        setShowCalendar(true);
+    };
+
+    const handleDateSelect = (date) => {
+        setSelectedDate(date);
+        setShowCalendar(false);
+    };
+
+    const Calendar = () => {
+        const year = calendarDate.getFullYear();
+        const month = calendarDate.getMonth();
+        const today = new Date();
+        
+        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const days = [];
+        for (let i = 0; i < firstDayOfMonth; i++) {
+            days.push(null);
+        }
+        for (let i = 1; i <= daysInMonth; i++) {
+            days.push(i);
+        }
+        
+        const monthNames = [
+            '1월', '2월', '3월', '4월', '5월', '6월',
+            '7월', '8월', '9월', '10월', '11월', '12월'
+        ];
+        
+        const goToPrevMonth = () => {
+            setCalendarDate(new Date(year, month - 1, 1));
+        };
+        
+        const goToNextMonth = () => {
+            setCalendarDate(new Date(year, month + 1, 1));
+        };
+        
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <button onClick={goToPrevMonth} className="p-2 hover:bg-gray-100 rounded">
+                            <MdKeyboardArrowLeft size={24} />
+                        </button>
+                        <h3 className="text-lg font-semibold">
+                            {year}년 {monthNames[month]}
+                        </h3>
+                        <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 rounded">
+                            <MdKeyboardArrowRight size={24} />
+                        </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-7 gap-1 mb-2">
+                        {['일', '월', '화', '수', '목', '금', '토'].map((dayName, index) => (
+                            <div key={dayName} className={`text-center text-sm font-medium py-2 ${
+                                index === 0 ? 'text-red-500' : index === 6 ? 'text-blue-500' : 'text-gray-700'
+                            }`}>
+                                {dayName}
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-7 gap-1">
+                        {days.map((day, index) => {
+                            if (day === null) {
+                                return <div key={index} className="h-10"></div>;
+                            }
+                            
+                            const isToday = year === today.getFullYear() && 
+                                           month === today.getMonth() && 
+                                           day === today.getDate();
+                            
+                            const isSelected = year === selectedDate.getFullYear() && 
+                                             month === selectedDate.getMonth() && 
+                                             day === selectedDate.getDate();
+                            
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => handleDateSelect(new Date(year, month, day))}
+                                    className={`h-10 rounded flex items-center justify-center text-sm transition-colors ${
+                                        isSelected 
+                                            ? 'bg-indigo-600 text-white' 
+                                            : isToday 
+                                                ? 'bg-indigo-100 text-indigo-600' 
+                                                : 'hover:bg-gray-100'
+                                    }`}
+                                >
+                                    {day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    
+                    <div className="flex justify-end mt-4 space-x-2">
+                        <button 
+                            onClick={() => setShowCalendar(false)}
+                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                        >
+                            취소
+                        </button>
+                        <button 
+                            onClick={() => setShowCalendar(false)}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
     
     // 숫자 맨 앞에 0 입력 막기 (0은 첫 입력 불가, 이후에는 입력 가능)
     const handleKeypadClick = (key) => {
@@ -91,7 +214,7 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
             if (amount === '' || amount === '0') return;
             newAmount = amount + '000';
         } else {
-            if ((key === '0' || key === '00') && amount === '') return;
+        if ((key === '0' || key === '00') && amount === '') return;
             newAmount = amount + key;
         }
         if (newAmount.length > 15) {
@@ -261,6 +384,8 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
             <div className="border-t">
                 <Keypad />
             </div>
+
+            {showCalendar && <Calendar />}
         </div>
     );
 };
