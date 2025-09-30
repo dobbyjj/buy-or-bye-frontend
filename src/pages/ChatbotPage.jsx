@@ -10,17 +10,42 @@ function ChatbotPage() {
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
-    setMessages(prev => [...prev, { sender: "user", text: input }]);
+
+    const newUserMessage = { sender: "user", text: input };
+    setMessages(prev => [...prev, newUserMessage]);
     setInput("");
     setLoading(true);
 
-    setTimeout(() => {
-      setMessages(prev => [
-        ...prev,
-        { sender: "bot", text: "챗봇 답변 예시: '" + input + "'에 대해 안내드릴게요." }
-      ]);
+    const apiMessages = messages.map(msg => ({
+      role: msg.sender === "bot" ? "assistant" : "user",
+      content: msg.text,
+    }));
+
+    apiMessages.push({ role: "user", content: input });
+
+    try {
+      const response = await fetch("http://localhost:3001/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: apiMessages,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      setMessages(prev => [...prev, { sender: "bot", text: data.content }]);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setMessages(prev => [...prev, { sender: "bot", text: "죄송합니다, 답변을 가져오는 중 오류가 발생했습니다." }]);
+    } finally {
       setLoading(false);
-    }, 700);
+    }
   };
 
   return (
