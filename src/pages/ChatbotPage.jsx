@@ -3,7 +3,7 @@ import BottomNavbar from "../components/common/BottomNavbar";
 
 function ChatbotPage() {
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "안녕하세요! 무엇을 도와드릴까요?" }
+    { sender: "bot", text: "안녕하세요! 저는 당신의 AI 어시스턴트입니다. 궁금한 것이 있으면 언제든지 물어보세요! 😊" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,34 +16,54 @@ function ChatbotPage() {
     setInput("");
     setLoading(true);
 
-    const apiMessages = messages.map(msg => ({
-      role: msg.sender === "bot" ? "assistant" : "user",
-      content: msg.text,
-    }));
-
-    apiMessages.push({ role: "user", content: input });
+    // OpenAI API 메시지 포맷
+    const apiMessages = [
+      {
+        role: "system",
+        content: "당신은 친근하고 도움이 되는 AI 어시스턴트입니다. 한국어로 답변해주세요."
+      },
+      ...messages.map(msg => ({
+        role: msg.sender === "bot" ? "assistant" : "user",
+        content: msg.text,
+      })),
+      { role: "user", content: input }
+    ];
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const response = await fetch(`${apiUrl}/api/chat`, {
+      const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+      
+      if (!OPENAI_API_KEY) {
+        throw new Error("OpenAI API Key가 설정되지 않았습니다.");
+      }
+      
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
+          model: "gpt-3.5-turbo",
           messages: apiMessages,
+          max_tokens: 1000,
+          temperature: 0.7,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error(`OpenAI API error: ${response.status}`);
       }
 
       const data = await response.json();
-      setMessages(prev => [...prev, { sender: "bot", text: data.content }]);
+      const botResponse = data.choices[0]?.message?.content || "죄송합니다, 응답을 생성할 수 없습니다.";
+      
+      setMessages(prev => [...prev, { sender: "bot", text: botResponse }]);
     } catch (error) {
-      console.error("Error fetching data:", error);
-      setMessages(prev => [...prev, { sender: "bot", text: "죄송합니다, 답변을 가져오는 중 오류가 발생했습니다." }]);
+      console.error("Error fetching OpenAI response:", error);
+      setMessages(prev => [...prev, { 
+        sender: "bot", 
+        text: "죄송합니다, 현재 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요." 
+      }]);
     } finally {
       setLoading(false);
     }
