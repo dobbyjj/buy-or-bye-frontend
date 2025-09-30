@@ -27,17 +27,17 @@ const DashboardPage = () => {
     const [assetChartData, setAssetChartData] = useState({
         ratio: { labels: ['부동산', '대출', '예금/현금', '기타 자산'], datasets: [{ data: [500, 200, 350, 200], backgroundColor: ['#EF4444', '#F59E0B', '#14B8A6', '#3B82F6'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '자산', data: [1250, 0, 1500], backgroundColor: '#3B82F6' }] },
-        yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 자산', data: [1000, 1150, 1200, 1100, 1250, 1300], borderColor: '#10B981', tension: 0.3, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.2)' }] },
+        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 자산', data: [1000, 1050, 1150, 1180, 1200, 1160, 1100, 1180, 1250, 1280, 1300, 1350], borderColor: '#10B981', tension: 0.3, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.2)' }] },
     });
     const [expenseChartData, setExpenseChartData] = useState({
         monthly: { labels: ['식비', '쇼핑', '교통', '주거/관리', '문화/여가', '화장품', '기타'], datasets: [{ data: [350, 100, 150, 200, 129, 80, 90], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '지출', data: [829, 0, 650], backgroundColor: '#FF6384' }] },
-        yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 지출', data: [750, 800, 780, 900, 829, 700], borderColor: '#EF4444', tension: 0.3, fill: false }] },
+        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 지출', data: [750, 720, 800, 850, 780, 820, 900, 880, 829, 790, 700, 650], borderColor: '#EF4444', tension: 0.3, fill: false }] },
     });
     const [incomeChartData, setIncomeChartData] = useState({
         monthly: { labels: ['월급', '투자수익', '부수입'], datasets: [{ data: [1000, 100, 100], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '수입', data: [1200, 0, 1500], backgroundColor: '#22C55E' }] },
-        yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 수입', data: [1100, 1250, 1200, 1300, 1200, 1400], borderColor: '#22C55E', tension: 0.3, fill: false }] },
+        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 수입', data: [1100, 1180, 1250, 1220, 1200, 1280, 1300, 1260, 1200, 1320, 1400, 1450], borderColor: '#22C55E', tension: 0.3, fill: false }] },
     });
 
     useEffect(() => {
@@ -268,19 +268,17 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
     const dataValues = config.source.datasets[0].data;
     const dataColors = config.source.datasets[0].backgroundColor;
 
-    // wide가 true면 700px로 가로 화면 전체 사용
-    const chartWidth = wide ? "700px" : "100%";
-    const chartMaxWidth = wide ? "700px" : "100%";
+    // wide가 true면 컨테이너 전체 너비 사용
 
     return (
         <div style={{
             background: "#fff",
             borderRadius: 12,
             boxShadow: "0 2px 8px #eee",
-            padding: "24px 16px",
+            padding: wide ? "16px 8px" : "24px 16px",
             marginBottom: 24,
             border: "1px solid #eee",
-            overflowX: wide ? "auto" : "visible"
+            overflowX: "visible"
         }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <h3 style={{ fontSize: 17, fontWeight: 600, color: "#444" }}>{config.title}</h3>
@@ -304,29 +302,29 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
                 )}
             </div>
             {isDoughnut ? (
-                <div style={{ display: "flex", alignItems: "flex-start", height: 320, minHeight: 320 }}>
-                    <div style={{ width: "35%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ width: "270px", height: "270px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", height: 340, minHeight: 340 }}>
+                    <div style={{ width: "50%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ width: "340px", height: "340px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <ChartComponent data={config.source} options={options} />
                         </div>
                     </div>
-                    <div style={{ width: "65%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: "16px 16px 16px 20px" }}>
-                        <p style={{ fontSize: 15, fontWeight: 600, color: "#222" }}>
+                    <div style={{ width: "50%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: "12px 4px 12px 16px" }}>
+                        <p style={{ fontSize: 15, fontWeight: 600, color: "#222", marginBottom: 1 }}>
                             {config.title.includes('자산') ? '자산 총액' : 
                              config.title.includes('지출') ? '지출 총액' : '수입 총액'}
                         </p>
                         {/* 자산 금액 옆에 단위(만원) 추가 */}
-                        <p style={{ fontSize: 22, fontWeight: 800, color: "#4B4BFF", marginBottom: 12 }}>
+                        <p style={{ fontSize: 22, fontWeight: 800, color: "#4B4BFF", marginBottom: 3 }}>
                             {formatCurrencyDisplay(totalAmount)} <span style={{ fontSize: 16, color: "#888", fontWeight: 500 }}>만원</span>
                         </p>
-                        <div style={{ overflowY: "auto", maxHeight: "220px" }}>
+                        <div style={{ overflowY: "auto", maxHeight: "270px" }}>
                             {dataLabels.map((label, index) => {
                                 const value = dataValues[index];
                                 const color = dataColors[index];
                                 const percentage = ((value / totalAmount) * 100).toFixed(0);
                                 return (
-                                    <div key={label} style={{ display: "flex", alignItems: "center", fontSize: 13, marginBottom: 8, flexWrap: "wrap" }}>
-                                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginRight: 8, background: color, display: "inline-block", flexShrink: 0 }}></span>
+                                    <div key={label} style={{ display: "flex", alignItems: "center", fontSize: 13, marginBottom: 3, flexWrap: "wrap" }}>
+                                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginRight: 4, background: color, display: "inline-block", flexShrink: 0 }}></span>
                                         <span style={{ fontWeight: 500, color: "#555", minWidth: "fit-content", marginRight: "auto" }}>{label}</span>
                                         <span style={{ fontWeight: 700, color, whiteSpace: "nowrap" }}>{formatCurrencyDisplay(value)} ({percentage}%)</span>
                                     </div>
@@ -336,18 +334,16 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
                     </div>
                 </div>
             ) : (
-                // wide가 true면 width/maxWidth 100vw로 가로 전체 사용
+                // wide가 true면 컨테이너 전체 너비 사용
                 <div style={{
                     position: "relative",
                     height: 220,
-                    width: chartWidth,
-                    maxWidth: chartMaxWidth,
-                    minWidth: 600,
+                    width: "100%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center"
                 }}>
-                    <div style={{ width: chartWidth, maxWidth: chartMaxWidth, height: "100%", padding: "24px 8px" }}>
+                    <div style={{ width: "100%", height: "100%", padding: "4px 0px" }}>
                         <ChartComponent data={config.source} options={options} />
                     </div>
                 </div>
