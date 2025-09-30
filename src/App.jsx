@@ -8,6 +8,8 @@ import MyPage from './pages/MyPage';
 import FixedExpense from './pages/FixedExpense'; // 추가
 import LedgerPage from './pages/LedgerPage';
 import AnalysisPage from './pages/AnalysisPage';
+import ErrorReportPage from './pages/ErrorReportPage';
+import ConfirmActionPage from './pages/ConfirmActionPage';
 
 function App() {
   return (
@@ -16,6 +18,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/quiz" element={<QuizPage />} />
         <Route path="/result" element={<ResultPage />} />
+        <Route path="/error-report" element={<ErrorReportPage />} />
         
         {/* 💥 재무 분석 페이지 경로 추가 */}
         <Route path="/analysis" element={<AnalysisPage />} />
@@ -30,6 +33,7 @@ function App() {
         <Route path="/chatbot" element={<ChatbotPage />} />
 
         <Route path="/fixed-expense" element={<FixedExpense />} />
+        <Route path="/confirm-action" element={<ConfirmActionPage />} />
 
         {/* 404 페이지 */}
         <Route path="*" element={<div>404 Page Not Found</div>} />

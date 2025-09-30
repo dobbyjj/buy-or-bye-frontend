@@ -1,37 +1,65 @@
-// src/components/common/BottomNavbar.jsx
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { FaUser, FaBook, FaChartBar, FaCommentDots } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const navItems = [
-  { name: 'My Page', path: '/mypage', icon: '👤' },
-  { name: '가계부', path: '/ledger', icon: '📝' },
-  { name: '자산', path: '/asset', icon: '💰' },
-  { name: '챗봇', path: '/chatbot', icon: '🤖' },
+// 순서: 대시보드, 가계부, 챗봇, 내정보
+const navs = [
+  { name: "dashboard", label: "대시보드", icon: <FaChartBar />, link: "/dashboard" },
+  { name: "ledger", label: "가계부", icon: <FaBook />, link: "/ledger" },
+  { name: "chatbot", label: "챗봇", icon: <FaCommentDots />, link: "/chatbot" },
+  { name: "mypage", label: "내 정보", icon: <FaUser />, link: "/mypage" },
 ];
 
-const BottomNavbar = () => {
+function BottomNavbar({ active }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
-    // 하단 고정: fixed bottom-0, w-full
-    // 반응형: MobileLayout과 동일하게 md:max-w-2xl (768px) 내에서 중앙 정렬
-    <nav className="fixed bottom-0 left-0 right-0 z-10 w-full bg-white border-t border-gray-200 
-                    md:max-w-2xl md:mx-auto md:shadow-2xl"> 
-      <div className="flex justify-around items-center h-16">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            className={({ isActive }) => 
-              `flex flex-col items-center justify-center p-2 text-sm font-medium transition duration-150 
-               ${isActive ? 'text-indigo-600' : 'text-gray-500 hover:text-indigo-600'}`
-            }
+    <nav
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        width: "100%",
+        background: "#fff",
+        borderTop: "1px solid #eee",
+        display: "flex",
+        justifyContent: "space-around",
+        alignItems: "center",
+        height: 64,
+        zIndex: 100,
+      }}
+    >
+      {navs.map((nav) => {
+        const isActive =
+          active === nav.name ||
+          location.pathname.startsWith(nav.link);
+
+        return (
+          <button
+            key={nav.name}
+            onClick={() => navigate(nav.link)}
+            style={{
+              flex: 1,
+              background: "none",
+              border: "none",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: isActive ? "#4B4BFF" : "#888",
+              fontWeight: isActive ? 700 : 500,
+              fontSize: 13,
+              cursor: "pointer",
+              padding: "8px 0",
+            }}
           >
-            <span className="text-xl mb-0.5">{item.icon}</span>
-            <span className="text-xs">{item.name}</span>
-          </NavLink>
-        ))}
-      </div>
+            <span style={{ fontSize: 22, marginBottom: 2 }}>{nav.icon}</span>
+            {nav.label}
+          </button>
+        );
+      })}
     </nav>
   );
-};
+}
 
 export default BottomNavbar;

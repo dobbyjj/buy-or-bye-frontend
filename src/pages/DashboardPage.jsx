@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Doughnut, Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js';
-import MobileLayout from '../components/layout/MobileLayout';
 import BottomNavbar from '../components/common/BottomNavbar';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { db } from '../db.js';
 
-// Chart.js의 필수 요소 및 플러그인 모두 등록
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, ChartDataLabels);
 
-// 나이를 기반으로 연령대 문자열을 반환하는 헬퍼 함수
 const getAgeGroup = (age) => {
     if (age >= 20 && age <= 24) return '20-24';
     if (age >= 25 && age <= 29) return '25-29';
@@ -27,7 +24,6 @@ const DashboardPage = () => {
         monthlyExpense: 829000,
     };
 
-    // 차트 데이터를 state로 관리 (원격 브랜치의 레이블 수정사항 반영)
     const [assetChartData, setAssetChartData] = useState({
         ratio: { labels: ['예금', '투자', '현금', '부동산'], datasets: [{ data: [500, 350, 50, 350], backgroundColor: ['#14B8A6', '#3B82F6', '#FBBF24', '#EF4444'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '자산', data: [1250, 0, 1500], backgroundColor: '#3B82F6' }] },
@@ -44,22 +40,15 @@ const DashboardPage = () => {
         yearly: { labels: ['1월', '3월', '5월', '7월', '9월', '11월'], datasets: [{ label: '총 수입', data: [1100, 1250, 1200, 1300, 1200, 1400], borderColor: '#22C55E', tension: 0.3, fill: false }] },
     });
 
-    // Dexie DB에서 데이터 로드 로직
     useEffect(() => {
         const fetchAverages = async () => {
             try {
                 const userDataString = localStorage.getItem('userFinancialData');
-                if (!userDataString) {
-                    console.log('사용자 데이터가 localStorage에 없습니다.');
-                    return;
-                }
+                if (!userDataString) return;
                 const userData = JSON.parse(userDataString);
                 const userAge = parseInt(userData.age, 10);
                 const userAgeGroup = getAgeGroup(userAge);
-                if (!userAgeGroup) {
-                    console.log(`나이 ${userAge}에 해당하는 연령대 그룹이 없습니다.`);
-                    return;
-                }
+                if (!userAgeGroup) return;
                 const averageData = await db.averages.where('age_group').equals(userAgeGroup).first();
                 if (averageData) {
                     setAgeGroupAverage({
@@ -67,8 +56,6 @@ const DashboardPage = () => {
                         expense: averageData.avg_expense,
                         income: averageData.avg_income,
                     });
-                } else {
-                    console.log(`DB에 ${userAgeGroup} 연령대 데이터가 없습니다.`);
                 }
             } catch (error) {
                 console.error("평균 데이터 로드 중 에러 발생:", error);
@@ -77,30 +64,83 @@ const DashboardPage = () => {
         fetchAverages();
     }, []);
 
-    // 차트 데이터 업데이트 로직
     useEffect(() => {
-        setAssetChartData(prevData => ({ ...prevData, comparison: { ...prevData.comparison, datasets: [{ ...prevData.comparison.datasets[0], data: [1250, ageGroupAverage.asset, 1500] }] } }));
-        setExpenseChartData(prevData => ({ ...prevData, comparison: { ...prevData.comparison, datasets: [{ ...prevData.comparison.datasets[0], data: [829, 650, ageGroupAverage.expense] }] } }));
-        setIncomeChartData(prevData => ({ ...prevData, comparison: { ...prevData.comparison, datasets: [{ ...prevData.comparison.datasets[0], data: [1200, 1500, ageGroupAverage.income] }] } }));
+        setAssetChartData(prevData => ({
+            ...prevData,
+            comparison: {
+                ...prevData.comparison,
+                datasets: [{ ...prevData.comparison.datasets[0], data: [1250, ageGroupAverage.asset, 1500] }]
+            }
+        }));
+        setExpenseChartData(prevData => ({
+            ...prevData,
+            comparison: {
+                ...prevData.comparison,
+                datasets: [{ ...prevData.comparison.datasets[0], data: [829, 650, ageGroupAverage.expense] }]
+            }
+        }));
+        setIncomeChartData(prevData => ({
+            ...prevData,
+            comparison: {
+                ...prevData.comparison,
+                datasets: [{ ...prevData.comparison.datasets[0], data: [1200, 1500, ageGroupAverage.income] }]
+            }
+        }));
     }, [ageGroupAverage]);
 
     const tabConfig = {
-        asset: { title: '총 자산 현황', data: assetChartData, color: 'text-green-600', chart1: { type: Doughnut, title: '전체 자산 비율', source: assetChartData.ratio }, chart2: { type: Bar, title: '동 연령 비교', source: assetChartData.comparison }, chart3: { type: Line, title: '1년 자산 추이', source: assetChartData.yearly } },
-        expense: { title: '총 지출 현황', data: expenseChartData, color: 'text-red-500', chart1: { type: Doughnut, title: '월별 지출 레이블', source: expenseChartData.monthly }, chart2: { type: Bar, title: '동 연령 vs 목표 지출 비교', source: expenseChartData.comparison }, chart3: { type: Line, title: '1년 지출 추이', source: expenseChartData.yearly } },
-        income: { title: '총 수입 현황', data: incomeChartData, color: 'text-blue-500', chart1: { type: Doughnut, title: '월별 수입 레이블', source: incomeChartData.monthly }, chart2: { type: Bar, title: '동 연령 vs 목표 수입 비교', source: incomeChartData.comparison }, chart3: { type: Line, title: '1년 수입 추이', source: incomeChartData.yearly } },
+        asset: {
+            title: '총 자산 현황',
+            data: assetChartData,
+            color: 'text-green-600',
+            chart1: { type: Doughnut, title: '전체 자산 비율', source: assetChartData.ratio },
+            chart2: { type: Bar, title: '동 연령 비교', source: assetChartData.comparison },
+            chart3: { type: Line, title: '1년 자산 추이', source: assetChartData.yearly }
+        },
+        expense: {
+            title: '총 지출 현황',
+            data: expenseChartData,
+            color: 'text-red-500',
+            chart1: { type: Doughnut, title: '월별 지출 레이블', source: expenseChartData.monthly },
+            chart2: { type: Bar, title: '동 연령 vs 목표 지출 비교', source: expenseChartData.comparison },
+            chart3: { type: Line, title: '1년 지출 추이', source: expenseChartData.yearly }
+        },
+        income: {
+            title: '총 수입 현황',
+            data: incomeChartData,
+            color: 'text-blue-500',
+            chart1: { type: Doughnut, title: '월별 수입 레이블', source: incomeChartData.monthly },
+            chart2: { type: Bar, title: '동 연령 vs 목표 수입 비교', source: incomeChartData.comparison },
+            chart3: { type: Line, title: '1년 수입 추이', source: incomeChartData.yearly }
+        },
     };
 
     const currentConfig = tabConfig[activeTab];
 
-    // 원격 브랜치의 포맷팅 함수와 차트 옵션 적용
     const formatCurrency = (amount) => {
         return amount ? (amount / 10000).toLocaleString('ko-KR') + '만' : 0;
     };
 
     const commonOptions = {
         responsive: true,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => { let label = context.dataset.label || ''; if (label) label += ': '; label += formatCurrency(context.parsed.y || context.parsed); return label; } } }, datalabels: { display: false } },
-        scales: { y: { beginAtZero: true, display: true, ticks: { callback: (value) => value + '만' } }, x: { display: true } },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: (context) => {
+                        let label = context.dataset.label || '';
+                        if (label) label += ': ';
+                        label += formatCurrency(context.parsed.y || context.parsed);
+                        return label;
+                    }
+                }
+            },
+            datalabels: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true, display: true, ticks: { callback: (value) => value + '만' } },
+            x: { display: true }
+        },
     };
 
     const doughnutOptions = {
@@ -128,79 +168,164 @@ const DashboardPage = () => {
         },
     };
 
+    // analysispage의 3번째 페이지로 이동하는 함수
+    const handleAnalysisEdit = () => {
+        window.location.href = "http://localhost:5175/analysis?page=3";
+    };
+
     return (
-        <MobileLayout activeNav="dashboard">
-            <div className="p-4 bg-white min-h-screen pb-24">
-                <h1 className="text-2xl font-bold text-gray-800 mb-6">결과 대시보드</h1>
-                <div className="bg-gray-50 p-4 rounded-xl shadow-inner mb-8">
-                    <p className="text-sm font-semibold text-gray-600 mb-2">이번 달 자산, 지출, 수입 요약</p>
-                    <div className="flex justify-between text-lg font-bold">
-                        <span className="text-green-600">자산: {summary.currentAsset.toLocaleString('ko-KR')}원</span>
-                        <span className="text-red-500">지출: {summary.monthlyExpense.toLocaleString('ko-KR')}원</span>
-                        <span className="text-blue-600">수입: {summary.monthlyIncome.toLocaleString('ko-KR')}원</span>
+        <div
+            style={{
+                minHeight: "100vh",
+                background: "#f9f9f9",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                paddingBottom: 80,
+            }}
+        >
+            <div
+                style={{
+                    width: "100%",
+                    maxWidth: 768,
+                    margin: "0 auto",
+                    padding: "24px 8px",
+                }}
+            >
+                <h1 style={{ textAlign: "center", fontSize: "clamp(20px, 4vw, 28px)", fontWeight: 700, color: "#222", marginBottom: 24 }}>결과 대시보드</h1>
+                <div style={{
+                    background: "#fff",
+                    borderRadius: 12,
+                    boxShadow: "0 2px 8px #eee",
+                    padding: "24px 16px",
+                    marginBottom: 24,
+                }}>
+                    <p style={{ fontSize: 15, fontWeight: 600, color: "#666", marginBottom: 8 }}>이번 달 자산, 지출, 수입 요약</p>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700 }}>
+                        <span style={{ color: "#10B981" }}>자산: {summary.currentAsset.toLocaleString('ko-KR')}원</span>
+                        <span style={{ color: "#EF4444" }}>지출: {summary.monthlyExpense.toLocaleString('ko-KR')}원</span>
+                        <span style={{ color: "#3B82F6" }}>수입: {summary.monthlyIncome.toLocaleString('ko-KR')}원</span>
                     </div>
                 </div>
-                <div className="flex space-x-4 border-b pb-2 mb-8">
+                <div style={{ display: "flex", borderBottom: "1px solid #eee", marginBottom: 24 }}>
                     {['asset', 'expense', 'income'].map(tab => (
-                        <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2 font-semibold capitalize ${activeTab === tab ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500'}`}>
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            style={{
+                                flex: 1,
+                                padding: "12px 0",
+                                fontWeight: 600,
+                                fontSize: 16,
+                                color: activeTab === tab ? "#4B4BFF" : "#888",
+                                borderBottom: activeTab === tab ? "2px solid #4B4BFF" : "none",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer"
+                            }}
+                        >
                             {tab === 'asset' ? '자산' : tab === 'expense' ? '지출' : '수입'}
                         </button>
                     ))}
                 </div>
-                <section className="space-y-10">
-                    <h2 className="text-xl font-bold text-gray-800">{currentConfig.title}</h2>
-                    <ChartBlock config={currentConfig.chart1} options={doughnutOptions} isDoughnut={true} />
-                    <ChartBlock config={currentConfig.chart2} options={commonOptions} />
-                    <ChartBlock config={currentConfig.chart3} options={commonOptions} />
+                <section style={{ marginBottom: 40 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 18 }}>{currentConfig.title}</h2>
+                    <ChartBlock
+                        config={currentConfig.chart1}
+                        options={doughnutOptions}
+                        isDoughnut={true}
+                        onEdit={handleAnalysisEdit}
+                    />
+                    <ChartBlock
+                        config={currentConfig.chart2}
+                        options={commonOptions}
+                        wide={true}
+                    />
+                    <ChartBlock
+                        config={currentConfig.chart3}
+                        options={commonOptions}
+                        wide={true}
+                    />
                 </section>
             </div>
-            <BottomNavbar isDashboard={true} />
-        </MobileLayout>
+            <BottomNavbar active="dashboard" />
+        </div>
     );
 };
 
 export default DashboardPage;
 
-// 원격 브랜치의 개선된 ChartBlock 컴포넌트 적용
-const ChartBlock = ({ config, options, isDoughnut = false }) => {
+// ChartBlock 컴포넌트 수정
+const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false }) => {
     const ChartComponent = config.type;
 
     const formatCurrencyDisplay = (amount) => {
         return amount.toLocaleString('ko-KR');
     };
-    
+
     const totalAmount = config.source.datasets[0].data.reduce((a, b) => a + b, 0);
     const dataLabels = config.source.labels;
     const dataValues = config.source.datasets[0].data;
     const dataColors = config.source.datasets[0].backgroundColor;
 
+    // wide가 true면 700px로 가로 화면 전체 사용
+    const chartWidth = wide ? "700px" : "100%";
+    const chartMaxWidth = wide ? "700px" : "100%";
+
     return (
-        <div className="bg-white p-4 rounded-xl shadow-lg border">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">{config.title}</h3>
-            
+        <div style={{
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 2px 8px #eee",
+            padding: "24px 16px",
+            marginBottom: 24,
+            border: "1px solid #eee",
+            overflowX: wide ? "auto" : "visible"
+        }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <h3 style={{ fontSize: 17, fontWeight: 600, color: "#444" }}>{config.title}</h3>
+                {/* 전체 자산 비율일 때만 편집 버튼 노출 */}
+                {isDoughnut && (
+                    <button
+                        onClick={onEdit}
+                        style={{
+                            background: "#4B4BFF",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 8,
+                            padding: "4px 14px",
+                            fontSize: 14,
+                            fontWeight: 500,
+                            cursor: "pointer"
+                        }}
+                    >
+                        편집
+                    </button>
+                )}
+            </div>
             {isDoughnut ? (
-                <div className="flex items-start justify-start h-64">
-                    <div className="relative h-full w-1/2 flex items-center justify-center">
-                        <div className="h-full w-full">
+                <div style={{ display: "flex", alignItems: "flex-start", height: 220 }}>
+                    <div style={{ width: "50%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ width: "100%", height: "100%" }}>
                             <ChartComponent data={config.source} options={options} />
                         </div>
                     </div>
-                    <div className="w-1/2 h-full flex flex-col justify-start p-4">
-                        <p className="text-lg font-semibold text-gray-800">자산 총액</p>
-                        <p className="text-3xl font-extrabold text-indigo-600 mb-4">{formatCurrencyDisplay(totalAmount)}</p>
-                        <div className='space-y-2'>
+                    <div style={{ width: "50%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-start", padding: 16 }}>
+                        <p style={{ fontSize: 15, fontWeight: 600, color: "#222" }}>자산 총액</p>
+                        {/* 자산 금액 옆에 단위(만원) 추가 */}
+                        <p style={{ fontSize: 22, fontWeight: 800, color: "#4B4BFF", marginBottom: 12 }}>
+                            {formatCurrencyDisplay(totalAmount)} <span style={{ fontSize: 16, color: "#888", fontWeight: 500 }}>만원</span>
+                        </p>
+                        <div>
                             {dataLabels.map((label, index) => {
                                 const value = dataValues[index];
                                 const color = dataColors[index];
                                 const percentage = ((value / totalAmount) * 100).toFixed(0);
-                                
                                 return (
-                                    <div key={label} className="flex items-center text-sm">
-                                        <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></span>
-                                        <span className="font-medium text-gray-700">{label}</span>
-                                        <span className="ml-auto font-bold" style={{ color: color }}>
-                                            {formatCurrencyDisplay(value)} ({percentage}%)
-                                        </span>
+                                    <div key={label} style={{ display: "flex", alignItems: "center", fontSize: 14, marginBottom: 6 }}>
+                                        <span style={{ width: 12, height: 12, borderRadius: "50%", marginRight: 8, background: color, display: "inline-block" }}></span>
+                                        <span style={{ fontWeight: 500, color: "#555" }}>{label}</span>
+                                        <span style={{ marginLeft: "auto", fontWeight: 700, color }}>{formatCurrencyDisplay(value)} ({percentage}%)</span>
                                     </div>
                                 );
                             })}
@@ -208,8 +333,18 @@ const ChartBlock = ({ config, options, isDoughnut = false }) => {
                     </div>
                 </div>
             ) : (
-                <div className="relative h-72 w-full flex items-center justify-center">
-                    <div className="h-full w-full">
+                // wide가 true면 width/maxWidth 100vw로 가로 전체 사용
+                <div style={{
+                    position: "relative",
+                    height: 220,
+                    width: chartWidth,
+                    maxWidth: chartMaxWidth,
+                    minWidth: 600,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                }}>
+                    <div style={{ width: chartWidth, maxWidth: chartMaxWidth, height: "100%", padding: "24px 8px" }}>
                         <ChartComponent data={config.source} options={options} />
                     </div>
                 </div>
