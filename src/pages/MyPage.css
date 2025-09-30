@@ -1,171 +1,35 @@
 .mypage-container {
+  min-height: 100vh;
+  background: #f9f9f9;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  align-items: center;
+  padding-bottom: 80px;
 }
 
-.mypage-header {
-  background: #2563eb;
-  color: #fff;
-  padding: 24px 0 16px 0;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+.mypage-content {
+  width: 100%;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 24px 8px;
 }
 
 .mypage-title {
-  font-size: 1.3em;
-}
-
-.mypage-main {
-  flex: 1;
-  padding: 24px 0 80px 0;
-}
-
-.mypage-section {
-  margin-bottom: 24px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  overflow: hidden;
-}
-
-.mypage-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 24px;
-  font-size: 1.08rem;
-  border-bottom: 1px solid #f1f5f9;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.mypage-item:last-child {
-  border-bottom: none;
-}
-.mypage-item:hover {
-  background: #f3f4f6;
-}
-
-.mypage-arrow {
-  background: none;
-  border: none;
-  font-size: 1.2em;
-  color: #94a3b8;
-  cursor: pointer;
-}
-
-.mypage-id {
-  color: #2563eb;
-  font-weight: 600;
-  font-size: 1em;
-  margin-left: 8px;
-}
-
-.mypage-version {
-  color: #64748b;
-  font-size: 0.98em;
-  margin-left: 8px;
-}
-
-.mypage-danger {
-  color: #ef4444;
-  font-weight: 600;
-  justify-content: center;
-}
-
-.mypage-bottom-nav {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  background: #fff;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-around;
-  padding: 8px 0;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
-  z-index: 10;
-}
-.mypage-bottom-nav button {
-  background: none;
-  border: none;
-  flex: 1;
-  text-align: center;
-  color: #64748b;
-  font-size: 1.1em;
-  padding: 4px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-.mypage-bottom-nav button:active,
-.mypage-bottom-nav button:focus {
-  color: #2563eb;
-}
-
-/* 팝업 스타일 */
-.mypage-popup-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.25);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mypage-popup {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-  padding: 28px 24px 20px 24px;
-  min-width: 320px;
-  max-width: 90vw;
-  text-align: left;
-  position: relative;
-}
-.mypage-popup h3 {
-  font-size: 1.15em;
-  margin-bottom: 18px;
-  color: #2563eb;
+  font-size: clamp(20px, 4vw, 28px);
   font-weight: 700;
-}
-.mypage-popup-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.mypage-popup-option label {
-  font-size: 1em;
   color: #222;
-}
-.mypage-popup-close {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-size: 1em;
-  cursor: pointer;
-  margin-top: 8px;
-  float: right;
+  margin-bottom: 24px;
 }
 
-/* 비활성화 스타일 */
-.mypage-disabled {
-  opacity: 0.5;
-  pointer-events: none;
+.mypage-box {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #eee;
+  padding: 24px 16px;
+  min-height: 200px;
 }
-.mypage-disabled-desc {
-  color: #ef4444;
-  font-size: 0.95em;
-  padding: 8px 24px 0 24px;
+
+.mypage-info {
+  font-size: 16px;
+  color: #444;
 }
