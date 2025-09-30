@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MdArrowBack } from "react-icons/md";
 import BottomNavbar from "../components/common/BottomNavbar"; // 상단에 import 추가
 
 const ErrorReportPage = () => {
+  const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
 
@@ -16,6 +19,11 @@ const ErrorReportPage = () => {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
     }
+  };
+
+  // 이전 페이지로 이동
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   // 보내기 버튼 클릭
@@ -48,9 +56,38 @@ return (
         padding: "24px 20px",
       }}
     >
-      <h2 style={{ fontSize: 22, fontWeight: 700, textAlign: "center", marginBottom: 24 }}>
-        오류 신고
-      </h2>
+      {/* 헤더 영역 */}
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        position: "relative", 
+        marginBottom: 24 
+      }}>
+        <button
+          onClick={handleGoBack}
+          style={{
+            position: "absolute",
+            left: 0,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            transition: "background-color 0.2s"
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = "#f0f0f0"}
+          onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
+        >
+          <MdArrowBack size={24} color="#333" />
+        </button>
+        <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
+          오류 신고
+        </h2>
+      </div>
       <form onSubmit={handleSubmit}>
         <label style={{ fontWeight: 600, fontSize: 16, marginBottom: 8, display: "block" }}>
           오류 신고 내용

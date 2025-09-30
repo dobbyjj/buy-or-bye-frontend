@@ -20,10 +20,14 @@ const AnalysisPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const cleanedValue = name === 'age' || name.includes('Value') || name.includes('Amount') || name.includes('Investments') || name.includes('Income') || name.includes('Expenses')
-      ? value.replace(/[^0-9]/g, '')
-      : value;
-    setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+    
+    if (name === 'age' || name.includes('Value') || name.includes('Amount') || name.includes('Investments') || name.includes('Income') || name.includes('Expenses')) {
+      // 숫자 필드의 경우 콤마를 제거하고 숫자만 추출
+      const cleanedValue = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleGenderChange = (gender) => {
@@ -45,20 +49,58 @@ const AnalysisPage = () => {
         type="text"
         name={name}
         value={value ? parseInt(value, 10).toLocaleString('ko-KR') : ''}
-        onChange={handleChange}
+        onChange={(e) => {
+          // 입력된 값에서 숫자만 추출
+          const numericValue = e.target.value.replace(/[^0-9]/g, '');
+          // 직접 이벤트 객체를 생성하여 handleChange 호출
+          const syntheticEvent = {
+            target: {
+              name: name,
+              value: numericValue
+            }
+          };
+          handleChange(syntheticEvent);
+        }}
+        onKeyDown={(e) => {
+          // Ctrl+A, Ctrl+C, Ctrl+V 등 조합키는 허용
+          if (e.ctrlKey || e.metaKey) return;
+          
+          // 허용되는 키들
+          const allowedKeys = [
+            'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+            'Home', 'End', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'
+          ];
+          
+          // 숫자 키 (0-9)
+          const isNumeric = (e.key >= '0' && e.key <= '9');
+          
+          // 허용되지 않는 키 입력 방지
+          if (!isNumeric && !allowedKeys.includes(e.key)) {
+            e.preventDefault();
+          }
+        }}
         placeholder={placeholder}
         inputMode="numeric"
+        autoComplete="off"
         style={{
           boxSizing: "border-box",
           width: "100%",
-          padding: "12px 16px",
+          padding: "12px 50px 12px 16px",
           borderRadius: 8,
           border: "1px solid #ddd",
           fontSize: 16,
           outline: "none",
+          transition: "border-color 0.2s",
+          backgroundColor: "#fff",
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = "#4B4BFF";
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = "#ddd";
         }}
       />
-      <span style={{ position: "absolute", right: 16, top: 38, color: "#888", fontWeight: 500 }}>원</span>
+      <span style={{ position: "absolute", right: 16, top: 38, color: "#888", fontWeight: 500, pointerEvents: "none" }}>원</span>
     </div>
   );
 
