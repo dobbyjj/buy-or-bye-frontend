@@ -170,7 +170,7 @@ const DashboardPage = () => {
 
     // analysispage의 3번째 페이지로 이동하는 함수
     const handleAnalysisEdit = () => {
-        window.location.href = "http://localhost:5175/analysis?page=3";
+        window.location.href = "/analysis?page=3";
     };
 
     return (

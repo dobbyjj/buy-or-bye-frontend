@@ -203,7 +203,7 @@ const LedgerPage = () => {
 
   // 고정비 수정 페이지 이동
   const handleFixedExpenseEdit = () => {
-    window.location.href = "http://localhost:5175/fixed-expense";
+    window.location.href = "/fixed-expense";
   };
 
   return (
