@@ -87,7 +87,7 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
             newAmount = amount.slice(0, -1);
         } else if (key === '+' || key === '-' || key === 'x' || key === '÷' || key === '=') {
             return;
-        } else if (key === ',000') {
+        } else if (key === '000') {
             if (amount === '' || amount === '0') return;
             newAmount = amount + '000';
         } else {
@@ -127,7 +127,7 @@ const LedgerEntryModal = ({ initialDate, onSubmit, onClose }) => {
         ['1', '2', '3', { label: <MdArrowBack size={24} />, value: 'DEL', className: 'bg-gray-200' }],
         ['4', '5', '6', '+'],
         ['7', '8', '9', '-'],
-        ['00', '0', ',000', '='],
+        ['00', '0', '000', '='],
     ];
 
     const Keypad = () => (
