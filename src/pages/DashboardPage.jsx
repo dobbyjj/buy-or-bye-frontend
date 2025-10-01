@@ -4,28 +4,37 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 import BottomNavbar from '../components/common/BottomNavbar';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { db } from '../db.js';
+// 👈 1. 평균 월급 데이터를 가져옵니다.
+import { averageMonthlySalary } from '../data/averageSalaryData';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, ChartDataLabels);
 
+// 👈 2. getAgeGroup 함수를 새로운 데이터 형식에 맞게 확장합니다.
 const getAgeGroup = (age) => {
-    if (age >= 20 && age <= 24) return '20-24';
-    if (age >= 25 && age <= 29) return '25-29';
-    if (age >= 30 && age <= 34) return '30-34';
+    if (age <= 19) return '19세이하';
+    if (age >= 20 && age <= 24) return '20-24세';
+    if (age >= 25 && age <= 29) return '25-29세';
+    if (age >= 30 && age <= 34) return '30-34세';
+    if (age >= 35 && age <= 39) return '35-39세';
+    if (age >= 40 && age <= 44) return '40-44세';
+    if (age >= 45 && age <= 49) return '45-49세';
+    // 필요에 따라 이미지의 나머지 연령대도 추가할 수 있습니다.
     return null;
 };
 
 const DashboardPage = () => {
     const [activeTab, setActiveTab] = useState('asset');
-    const [ageGroupAverage, setAgeGroupAverage] = useState({ asset: 0, expense: 0, income: 0 });
     const [startYear, setStartYear] = useState(2023);
     const [endYear, setEndYear] = useState(2024);
 
+    // 사용자의 실제 데이터 (예시)
     const summary = {
         currentAsset: 12500000,
         monthlyIncome: 1200000,
         monthlyExpense: 829000,
     };
 
+    // 차트 데이터 초기 상태
     const [assetChartData, setAssetChartData] = useState({
         ratio: { labels: ['부동산', '대출', '예금/현금', '기타 자산'], datasets: [{ data: [500, 200, 350, 200], backgroundColor: ['#EF4444', '#F59E0B', '#14B8A6', '#3B82F6'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '자산', data: [1250, 0, 1500], backgroundColor: '#3B82F6' }] },
@@ -41,61 +50,65 @@ const DashboardPage = () => {
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '수입', data: [1200, 0, 1500], backgroundColor: '#22C55E' }] },
         yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 수입', data: [1100, 1180, 1250, 1220, 1200, 1280, 1300, 1260, 1200, 1320, 1400, 1450], borderColor: '#22C55E', tension: 0.3, fill: false }] },
     });
-
+    
+    // 👈 3. 기존의 useEffect 두 개를 아래의 하나로 통합하고 수정합니다.
     useEffect(() => {
-        const fetchAverages = async () => {
+        const fetchAndSetData = async () => {
             try {
-                const userDataString = localStorage.getItem('userFinancialData');
+                // localStorage에서 사용자 데이터 가져오기
+                const userDataString = localStorage.getItem('userData');
                 if (!userDataString) return;
+
                 const userData = JSON.parse(userDataString);
                 const userAge = parseInt(userData.age, 10);
                 const userAgeGroup = getAgeGroup(userAge);
+
                 if (!userAgeGroup) return;
-                const averageData = await db.averages.where('age_group').equals(userAgeGroup).first();
-                if (averageData) {
-                    setAgeGroupAverage({
-                        asset: averageData.avg_asset,
-                        expense: averageData.avg_expense,
-                        income: averageData.avg_income,
-                    });
-                }
+
+                // averageSalaryData.js에서 해당 연령대의 평균 수입(월급) 찾기
+                const salaryData = averageMonthlySalary.find(
+                    (data) => data.ageGroup === userAgeGroup
+                );
+                
+                // 차트 단위가 만원이므로 10000으로 나눔 (기존 차트 데이터 단위에 맞게 조정 필요)
+                // 현재 차트 데이터가 1200 (120만원) 단위로 추정되므로, 실제 월급 값을 10000으로 나누어 '만원' 단위로 변환
+                const avgIncomeInTenThousand = salaryData ? salaryData.monthlySalary / 10000 : 0;
+
+                // Dexie에서 자산, 지출 평균 가져오기 (기존 로직 유지)
+                const ageGroupForDexie = userAgeGroup.replace('세이하', '').replace('세',''); // '20-24세' -> '20-24'
+                const averageData = await db.averages.where('age_group').equals(ageGroupForDexie).first();
+                const avgAsset = averageData ? averageData.avg_asset : 0;
+                const avgExpense = averageData ? averageData.avg_expense : 0;
+
+                // 모든 차트 데이터 업데이트
+                setIncomeChartData(prevData => ({
+                    ...prevData,
+                    comparison: { ...prevData.comparison, datasets: [{ ...prevData.comparison.datasets[0], data: [summary.monthlyIncome / 10000, avgIncomeInTenThousand, 1500] }] }
+                }));
+
+                setAssetChartData(prevData => ({
+                    ...prevData,
+                    comparison: { ...prevData.comparison, datasets: [{ ...prevData.comparison.datasets[0], data: [summary.currentAsset / 10000, avgAsset, 1500] }] }
+                }));
+
+                setExpenseChartData(prevData => ({
+                    ...prevData,
+                    comparison: { ...prevData.comparison, datasets: [{ ...prevData.comparison.datasets[0], data: [summary.monthlyExpense / 1000, avgExpense, 650] }] }
+                }));
+
             } catch (error) {
-                console.error("평균 데이터 로드 중 에러 발생:", error);
+                console.error("평균 데이터 로드 및 차트 업데이트 중 에러 발생:", error);
             }
         };
-        fetchAverages();
-    }, []);
 
-    useEffect(() => {
-        setAssetChartData(prevData => ({
-            ...prevData,
-            comparison: {
-                ...prevData.comparison,
-                datasets: [{ ...prevData.comparison.datasets[0], data: [1250, ageGroupAverage.asset, 1500] }]
-            }
-        }));
-        setExpenseChartData(prevData => ({
-            ...prevData,
-            comparison: {
-                ...prevData.comparison,
-                datasets: [{ ...prevData.comparison.datasets[0], data: [829, ageGroupAverage.expense, 650] }]
-            }
-        }));
-        setIncomeChartData(prevData => ({
-            ...prevData,
-            comparison: {
-                ...prevData.comparison,
-                datasets: [{ ...prevData.comparison.datasets[0], data: [1200, ageGroupAverage.income, 1500] }]
-            }
-        }));
-    }, [ageGroupAverage]);
+        fetchAndSetData();
+    }, []); // 페이지가 처음 로드될 때 한 번만 실행되도록 빈 배열을 전달
+
 
     // 연도 validation 핸들러
     const handleStartYearChange = (e) => {
         const newStartYear = parseInt(e.target.value);
         setStartYear(newStartYear);
-        
-        // 시작 연도가 끝 연도보다 크면 끝 연도를 시작 연도로 맞춤
         if (newStartYear > endYear) {
             setEndYear(newStartYear);
         }
@@ -104,8 +117,6 @@ const DashboardPage = () => {
     const handleEndYearChange = (e) => {
         const newEndYear = parseInt(e.target.value);
         setEndYear(newEndYear);
-        
-        // 끝 연도가 시작 연도보다 작으면 시작 연도를 끝 연도로 맞춤
         if (newEndYear < startYear) {
             setStartYear(newEndYear);
         }
@@ -153,7 +164,7 @@ const DashboardPage = () => {
                     label: (context) => {
                         let label = context.dataset.label || '';
                         if (label) label += ': ';
-                        label += formatCurrency(context.parsed.y || context.parsed);
+                        label += (context.parsed.y || context.parsed).toLocaleString('ko-KR') + '만';
                         return label;
                     }
                 }
@@ -224,7 +235,6 @@ const DashboardPage = () => {
                     marginBottom: 24,
                     minHeight: "120px",
                 }}>
-                    {/* Period 선택 부분을 위쪽으로 이동 */}
                     <div style={{
                         display: "flex",
                         alignItems: "center",
@@ -336,7 +346,7 @@ const DashboardPage = () => {
 
 export default DashboardPage;
 
-// ChartBlock 컴포넌트 수정
+// ChartBlock 컴포넌트
 const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false }) => {
     const ChartComponent = config.type;
 
@@ -348,8 +358,6 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
     const dataLabels = config.source.labels;
     const dataValues = config.source.datasets[0].data;
     const dataColors = config.source.datasets[0].backgroundColor;
-
-    // wide가 true면 컨테이너 전체 너비 사용
 
     return (
         <div style={{
@@ -363,7 +371,6 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
         }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <h3 style={{ fontSize: 17, fontWeight: 600, color: "#444" }}>{config.title}</h3>
-                {/* 전체 자산 비율일 때만 편집 버튼 노출 */}
                 {isDoughnut && (
                     <button
                         onClick={onEdit}
@@ -394,7 +401,6 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
                             {config.title.includes('자산') ? '자산 총액' : 
                              config.title.includes('지출') ? '지출 총액' : '수입 총액'}
                         </p>
-                        {/* 자산 금액 옆에 단위(만원) 추가 */}
                         <p style={{ fontSize: 22, fontWeight: 800, color: "#4B4BFF", marginBottom: 3 }}>
                             {formatCurrencyDisplay(totalAmount)} <span style={{ fontSize: 16, color: "#888", fontWeight: 500 }}>만원</span>
                         </p>
@@ -402,7 +408,7 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
                             {dataLabels.map((label, index) => {
                                 const value = dataValues[index];
                                 const color = dataColors[index];
-                                const percentage = ((value / totalAmount) * 100).toFixed(0);
+                                const percentage = totalAmount > 0 ? ((value / totalAmount) * 100).toFixed(0) : 0;
                                 return (
                                     <div key={label} style={{ display: "flex", alignItems: "center", fontSize: 13, marginBottom: 3, flexWrap: "wrap" }}>
                                         <span style={{ width: 12, height: 12, borderRadius: "50%", marginRight: 4, background: color, display: "inline-block", flexShrink: 0 }}></span>
@@ -415,7 +421,6 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
                     </div>
                 </div>
             ) : (
-                // wide가 true면 컨테이너 전체 너비 사용
                 <div style={{
                     position: "relative",
                     height: 220,
