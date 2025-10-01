@@ -189,7 +189,7 @@ const DashboardPage = () => {
                 }
             },
             datalabels: {
-                color: '#333',
+                color: '#fff',
                 textAlign: 'center',
                 font: { weight: 'bold', size: 10 },
                 formatter: (value, context) => {
@@ -198,9 +198,9 @@ const DashboardPage = () => {
                     const label = context.chart.data.labels[context.dataIndex];
                     return `${label}\n${percentage}`;
                 },
-                anchor: 'end',
-                align: 'end',
-                offset: 5,
+                anchor: 'center',
+                align: 'center',
+                offset: 0,
             },
         },
     };
@@ -255,6 +255,44 @@ export default DashboardPage;
 const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false }) => {
     const ChartComponent = config.type;
 
+    const renderDoughnutLegend = () => {
+        if (!config.source.datasets || config.source.datasets.length === 0) {
+            return null;
+        }
+        const data = config.source.datasets[0].data;
+        const labels = config.source.labels;
+        const colors = config.source.datasets[0].backgroundColor;
+        const total = data.reduce((a, b) => a + b, 0);
+
+        return (
+            <div style={{ flex: 1, paddingLeft: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ marginBottom: '16px' }}>
+                    <span style={{ fontSize: '16px', color: '#666' }}>자산 총액</span>
+                    <h4 style={{ fontSize: '24px', fontWeight: 'bold', color: '#333', margin: '4px 0' }}>
+                        {(total / 10000).toLocaleString('ko-KR')} 만원
+                    </h4>
+                </div>
+                <div>
+                    {labels.map((label, index) => {
+                        const value = data[index];
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : 0;
+                        return (
+                            <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colors[index], marginRight: '8px' }}></span>
+                                    <span style={{ fontSize: '14px', color: '#555' }}>{label}</span>
+                                </div>
+                                <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                                    {(value / 10000).toLocaleString('ko-KR')} ({percentage}%)
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 2px 8px #eee", padding: "24px 16px", marginBottom: 24, border: "1px solid #eee" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
@@ -262,8 +300,11 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
                 {isDoughnut && (<button onClick={onEdit} style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "4px 14px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>편집</button>)}
             </div>
             {isDoughnut ? (
-                <div style={{ position: "relative", height: "300px" }}>
-                    <ChartComponent data={config.source} options={options} />
+                <div style={{ display: 'flex', alignItems: 'center', position: "relative", height: "300px" }}>
+                    <div style={{ flex: 0.2, position: 'relative', height: '100%' }}>
+                        <ChartComponent data={config.source} options={options} />
+                    </div>
+                    {renderDoughnutLegend()}
                 </div>
             ) : (
                 <div style={{ position: "relative", height: "220px" }}>
