@@ -19,72 +19,34 @@ const initialFinancialData = {
   otherExpense: '',
 };
 
-const AnalysisPage = () => {
-  const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState(initialFinancialData);
+const NumberInput = ({ label, name, value, placeholder, handleChange }) => {
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'age' || name.includes('Value') || name.includes('Amount') || name.includes('Investments') || name.includes('Income') || name.includes('Expense')) {
-      // 숫자 필드의 경우 콤마를 제거하고 숫자만 추출
-      const cleanedValue = value.replace(/[^0-9]/g, '');
-      setFormData(prev => ({ ...prev, [name]: cleanedValue }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+  const handleChangeLocal = (e) => {
+    const numericValue = e.target.value.replace(/[^0-9]/g, '');
+    handleChange({ target: { name, value: numericValue } });
   };
 
-  const handleGenderChange = (gender) => {
-    setFormData(prev => ({ ...prev, gender }));
+  const handleFocus = () => {
+    setIsEditing(true);
   };
 
-  const handleNext = () => {
-    if (step < 3) {
-      setStep(step + 1);
-    } else if (step === 3) {
-      navigate('/dashboard');
-    }
+  const handleBlur = () => {
+    setIsEditing(false);
   };
 
-  const NumberInput = ({ label, name, value, placeholder }) => (
+  const displayValue = isEditing ? value : (value ? parseInt(value, 10).toLocaleString('ko-KR') : '');
+
+  return (
     <div style={{ marginBottom: 16, position: "relative" }}>
       <label style={{ display: "block", color: "#333", fontWeight: 600, marginBottom: 6 }}>{label}</label>
       <input
-        type="text"
+        type={'text'}
         name={name}
-        value={value ? parseInt(value, 10).toLocaleString('ko-KR') : ''}
-        onChange={(e) => {
-          // 입력된 값에서 숫자만 추출
-          const numericValue = e.target.value.replace(/[^0-9]/g, '');
-          // 직접 이벤트 객체를 생성하여 handleChange 호출
-          const syntheticEvent = {
-            target: {
-              name: name,
-              value: numericValue
-            }
-          };
-          handleChange(syntheticEvent);
-        }}
-        onKeyDown={(e) => {
-          // Ctrl+A, Ctrl+C, Ctrl+V 등 조합키는 허용
-          if (e.ctrlKey || e.metaKey) return;
-          
-          // 허용되는 키들
-          const allowedKeys = [
-            'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
-            'Home', 'End', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'
-          ];
-          
-          // 숫자 키 (0-9)
-          const isNumeric = (e.key >= '0' && e.key <= '9');
-          
-          // 허용되지 않는 키 입력 방지
-          if (!isNumeric && !allowedKeys.includes(e.key)) {
-            e.preventDefault();
-          }
-        }}
+        value={displayValue}
+        onChange={handleChangeLocal}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder={placeholder}
         inputMode="numeric"
         autoComplete="off"
@@ -99,16 +61,33 @@ const AnalysisPage = () => {
           transition: "border-color 0.2s",
           backgroundColor: "#fff",
         }}
-        onFocus={(e) => {
-          e.target.style.borderColor = "#4B4BFF";
-        }}
-        onBlur={(e) => {
-          e.target.style.borderColor = "#ddd";
-        }}
       />
       <span style={{ position: "absolute", right: 16, top: 38, color: "#888", fontWeight: 500, pointerEvents: "none" }}>원</span>
     </div>
   );
+};
+
+const AnalysisPage = () => {
+  const navigate = useNavigate();
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState(initialFinancialData);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGenderChange = (gender) => {
+    setFormData(prev => ({ ...prev, gender }));
+  };
+
+  const handleNext = () => {
+    if (step < 3) {
+      setStep(step + 1);
+    } else if (step === 3) {
+      navigate('/dashboard');
+    }
+  };
 
   const renderStartHome = () => (
     <div style={{ textAlign: "center", padding: 24, minHeight: "70vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -207,10 +186,10 @@ const AnalysisPage = () => {
     <div style={{ padding: 24 }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>2/3. 나의 자산 현황을 입력해주세요.</h2>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
-        <NumberInput label="부동산 가액" name="realEstateValue" value={formData.realEstateValue} placeholder="보유 부동산의 현재 가치를 입력" />
-        <NumberInput label="대출 금액" name="loanAmount" value={formData.loanAmount} placeholder="주택 담보, 신용 대출 등 총액을 입력" />
-        <NumberInput label="단기 예금/현금" name="depositAmount" value={formData.depositAmount} placeholder="비상금 또는 단기 예금 금액을 입력" />
-        <NumberInput label="기타 금융자산(투자, 적금 등)" name="otherInvestments" value={formData.otherInvestments} placeholder="투자, 적금 등 기타 금융자산 금액을 입력" />
+        <NumberInput label="부동산 가액" name="realEstateValue" value={formData.realEstateValue} placeholder="보유 부동산의 현재 가치를 입력" handleChange={handleChange} />
+        <NumberInput label="대출 금액" name="loanAmount" value={formData.loanAmount} placeholder="주택 담보, 신용 대출 등 총액을 입력" handleChange={handleChange} />
+        <NumberInput label="단기 예금/현금" name="depositAmount" value={formData.depositAmount} placeholder="비상금 또는 단기 예금 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="기타 금융자산(투자, 적금 등)" name="otherInvestments" value={formData.otherInvestments} placeholder="투자, 적금 등 기타 금융자산 금액을 입력" handleChange={handleChange} />
         <button type="submit" style={{
           width: "100%",
           marginTop: 24,
@@ -234,14 +213,14 @@ const AnalysisPage = () => {
     <div style={{ padding: 24 }}>
       <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>3/3. 월 수입과 비용을 입력해주세요.</h2>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
-        <NumberInput label="월 수입" name="monthlyIncome" value={formData.monthlyIncome} placeholder="매월 벌어들이는 총 금액을 입력" />
-        <NumberInput label="식비" name="foodExpense" value={formData.foodExpense} placeholder="식비 관련 지출 금액을 입력" />
-        <NumberInput label="쇼핑" name="shoppingExpense" value={formData.shoppingExpense} placeholder="쇼핑 관련 지출 금액을 입력" />
-        <NumberInput label="교통" name="transportExpense" value={formData.transportExpense} placeholder="교통비 관련 지출 금액을 입력" />
-        <NumberInput label="주거/관리비" name="housingExpense" value={formData.housingExpense} placeholder="주거 및 관리비 관련 지출 금액을 입력" />
-        <NumberInput label="문화/여가" name="cultureExpense" value={formData.cultureExpense} placeholder="문화/여가 관련 지출 금액을 입력" />
-        <NumberInput label="생활용품" name="dailyGoodsExpense" value={formData.dailyGoodsExpense} placeholder="생활용품 관련 지출 금액을 입력" />
-        <NumberInput label="기타" name="otherExpense" value={formData.otherExpense} placeholder="기타 지출 금액을 입력" />
+        <NumberInput label="월 수입" name="monthlyIncome" value={formData.monthlyIncome} placeholder="매월 벌어들이는 총 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="식비" name="foodExpense" value={formData.foodExpense} placeholder="식비 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="쇼핑" name="shoppingExpense" value={formData.shoppingExpense} placeholder="쇼핑 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="교통" name="transportExpense" value={formData.transportExpense} placeholder="교통비 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="주거/관리비" name="housingExpense" value={formData.housingExpense} placeholder="주거 및 관리비 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="문화/여가" name="cultureExpense" value={formData.cultureExpense} placeholder="문화/여가 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="생활용품" name="dailyGoodsExpense" value={formData.dailyGoodsExpense} placeholder="생활용품 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="기타" name="otherExpense" value={formData.otherExpense} placeholder="기타 지출 금액을 입력" handleChange={handleChange} />
         <button type="submit" style={{
           width: "100%",
           marginTop: 24,

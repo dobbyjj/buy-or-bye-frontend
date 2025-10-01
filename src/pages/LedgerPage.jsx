@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import BottomNavbar from '../components/common/BottomNavbar';
 import LedgerEntryModal from '../components/ledger/LedgerEntryModal';
 import { IoAdd, IoClose } from 'react-icons/io5';
@@ -30,6 +30,16 @@ const LedgerPage = () => {
   ]);
   const [modalDate, setModalDate] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [isFabOpen, setIsFabOpen] = useState(false);
+  const [isDesktopView, setIsDesktopView] = useState(window.innerWidth > 850);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktopView(window.innerWidth > 850);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // 로그인 관련 상태
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -270,6 +280,16 @@ const LedgerPage = () => {
     window.location.href = "/fixed-expense";
   };
 
+  const fabContainerStyle = {
+    position: 'fixed',
+    bottom: 110,
+    zIndex: 20,
+    display: 'flex',
+    flexDirection: 'column-reverse',
+    alignItems: 'center',
+    right: isDesktopView ? 'calc(50% - 768px / 2 - 80px)' : 24,
+  };
+
   return (
     <div
       style={{
@@ -341,57 +361,85 @@ const LedgerPage = () => {
           {renderDayEntries()}
         </div>
       </div>
-      {/* 수입/지출 입력, 고정비 지출 수정 버튼 */}
-      <div style={{ position: "fixed", right: 24, bottom: 150, display: "flex", flexDirection: "column", alignItems: "center", zIndex: 20 }}>
-        {/* 수입/지출 입력 버튼 */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 16 }}>
-          <button
-            onClick={handleOpenModal}
-            style={{
-              width: 56,
-              height: 56,
-              background: "#4B4BFF",
-              color: "#fff",
-              border: "none",
-              borderRadius: "50%",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px #bbb",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative"
-            }}
-            title="수입/지출 입력"
-          >
-            <IoAdd size={32} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }} />
-          </button>
-          <span style={{ fontSize: 14, color: "#4B4BFF", fontWeight: 600, marginTop: 8 }}>수입/지출 입력</span>
-        </div>
-        {/* 고정비 지출 수정 버튼 */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <button
-            onClick={handleFixedExpenseEdit}
-            style={{
-              width: 56,
-              height: 56,
-              background: "#10B981",
-              color: "#fff",
-              border: "none",
-              borderRadius: "50%",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px #bbb",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative"
-            }}
-            title="고정비 지출 수정"
-          >
-            <MdArrowBack size={28} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }} />
-          </button>
-          <span style={{ fontSize: 14, color: "#10B981", fontWeight: 600, marginTop: 8 }}>고정비 지출 수정</span>
-        </div>
+
+      {/* FAB Speed Dial */}
+      <div style={fabContainerStyle}>
+        {/* Main FAB */}
+        <button
+          onClick={() => setIsFabOpen(!isFabOpen)}
+          style={{
+            width: 56,
+            height: 56,
+            background: isFabOpen ? '#6B7280' : '#4B4BFF',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background-color 0.3s',
+            marginTop: 16,
+          }}
+        >
+          {isFabOpen ? <IoClose size={32} /> : <IoAdd size={32} />}
+        </button>
+
+        {/* Speed Dial Options */}
+        {isFabOpen && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+            {/* 고정비 지출 수정 버튼 */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <button
+                onClick={() => { handleFixedExpenseEdit(); setIsFabOpen(false); }}
+                style={{
+                  width: 52,
+                  height: 52,
+                  background: '#10B981',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="고정비 지출 수정"
+              >
+                <MdArrowBack size={28} />
+              </button>
+              <span style={{ fontSize: 14, color: '#333', fontWeight: 600, marginTop: 6, background: 'rgba(255,255,255,0.8)', padding: '2px 6px', borderRadius: 4 }}>고정비 지출 수정</span>
+            </div>
+
+            {/* 수입/지출 입력 버튼 */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <button
+                onClick={() => { handleOpenModal(); setIsFabOpen(false); }}
+                style={{
+                  width: 52,
+                  height: 52,
+                  background: '#4B4BFF',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="수입/지출 입력"
+              >
+                <MdEdit size={24} />
+              </button>
+              <span style={{ fontSize: 14, color: '#333', fontWeight: 600, marginTop: 6, background: 'rgba(255,255,255,0.8)', padding: '2px 6px', borderRadius: 4 }}>수입/지출 입력</span>
+            </div>
+          </div>
+        )}
       </div>
+
       {modalDate && (
         <LedgerEntryModal
           initialDate={modalDate}
