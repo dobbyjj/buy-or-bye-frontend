@@ -88,6 +88,7 @@ const AnalysisPage = () => {
     if (step < 4) {
       setStep(step + 1);
     } else if (step === 4) {
+      localStorage.setItem('userData', JSON.stringify(formData));
       navigate('/dashboard');
     }
   };

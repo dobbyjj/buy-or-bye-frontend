@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import MobileLayout from '../components/layout/MobileLayout';
+import buyOrByeImage from '../assets/buy_or_bye.png'; // 이미지 경로
 
 const HomePage = () => {
   const navigate = useNavigate(); 
@@ -15,34 +16,50 @@ const HomePage = () => {
         flex 
         flex-col 
         items-center 
-        justify-center 
-        min-h-[80vh] 
+        justify-start         
+        min-h-screen 
         text-center
-        lg:min-h-fit        {/* 웹에서는 높이 제한 해제 */}
-        lg:py-20           {/* 웹에서 상하 여백 추가 */}
+        bg-conic-gradient from-indigo-50 via-white to-sky-50 
+        p-6 
+        -mx-4 -my-6         
+        lg:min-h-fit
+        lg:py-20 
       ">
         
-        {/* 타이틀: 모바일 3xl -> md: 4xl -> lg: 5xl로 확장 */}
+        {/* 이미지 컨테이너: 여백 조정 */}
+        <div className="
+            mt-12 md:mt-16 lg:mt-20     
+            mb-6                   
+            p-0                   
+            flex justify-center 
+            items-center
+        ">
+          <img 
+            src={buyOrByeImage} 
+            alt="Buy or Bye Choice" 
+            className="w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-contain" 
+          />
+        </div>
+
+        {/* 메인 타이틀: 글꼴 두께 강조, 색상은 인디고 유지 */}
         <h1 className="
-          text-3xl font-bold text-gray-800 mb-4 
+          text-3xl font-extrabold text-indigo-700 mb-2 /* 기존 인디고 색상 유지, 두께 강조 */
           md:text-4xl 
           lg:text-5xl 
-          lg:mb-6
         ">
-          나만의 모바일 테스트
+          소비 성향 MBTI 테스트
         </h1>
 
-        {/* 설명: 폰트 크기 및 여백 조정 */}
+        {/* 서브 타이틀/설명: 글꼴 크기 조정, 문구 간결화 */}
         <p className="
-          text-base text-gray-600 mb-8 max-w-sm 
-          lg:text-lg 
-          lg:mb-10 
-          lg:max-w-md
+          text-lg font-bold text-gray-700 mb-12 max-w-sm  /* 텍스트 크기 약간 줄여 간결하게 */
+          lg:text-xl 
+          lg:mb-14 
         ">
-          모바일 환경에 최적화된 화면입니다. 지금 바로 시작해 보세요!
+          내 돈 관리 유형은? 머니톡과 함께! 💸
         </p>
 
-        {/* 시작 버튼: 너비와 패딩 조정 */}
+        {/* 시작 버튼: 밝은 하늘색으로 변경, 그림자 강조 */}
         <button
           onClick={handleStartTest}
           className="
@@ -50,19 +67,26 @@ const HomePage = () => {
             max-w-xs 
             py-4 
             text-lg 
-            font-semibold 
+            font-bold 
             text-white 
-            bg-indigo-600 
-            rounded-lg 
-            shadow-md 
-            hover:bg-indigo-700 
+            bg-sky-400             /* 밝은 하늘색 (sky-400) */
+            rounded-xl 
+            shadow-lg              /* 그림자 강조 */
+            hover:bg-sky-500       
+            active:bg-sky-600      
             transition duration-300
-            lg:py-5             {/* 웹에서 버튼 높이 키우기 */}
-            lg:text-xl           {/* 웹에서 버튼 폰트 키우기 */}
+            transform hover:scale-105
+            lg:py-5 
+            lg:text-xl 
           "
         >
-          테스트 시작하기
+          돈BTI 시작하기
         </button>
+        
+        {/* Made with 문구: 기존 Flex AI 유지 */}
+        <div className="mt-8 text-sm text-gray-400">
+            made with Flex AI
+        </div>
       </div>
     </MobileLayout>
   );
