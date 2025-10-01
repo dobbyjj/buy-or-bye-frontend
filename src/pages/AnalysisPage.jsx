@@ -10,6 +10,9 @@ const initialFinancialData = {
   depositAmount: '',
   otherInvestments: '',
   monthlyIncome: '',
+  investmentIncome: '',
+  allowanceIncome: '',
+  otherIncome: '',
   foodExpense: '',
   shoppingExpense: '',
   transportExpense: '',
@@ -82,9 +85,9 @@ const AnalysisPage = () => {
   };
 
   const handleNext = () => {
-    if (step < 3) {
+    if (step < 4) {
       setStep(step + 1);
-    } else if (step === 3) {
+    } else if (step === 4) {
       navigate('/dashboard');
     }
   };
@@ -209,18 +212,44 @@ const AnalysisPage = () => {
     </div>
   );
 
-  const renderIncomeExpenseInput = () => (
+  const renderIncomeInput = () => (
     <div style={{ padding: 24 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>3/3. 월 수입과 비용을 입력해주세요.</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>3/4. 월 수입과 비율을 입력해주세요.</h2>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
-        <NumberInput label="월 수입" name="monthlyIncome" value={formData.monthlyIncome} placeholder="매월 벌어들이는 총 금액을 입력" handleChange={handleChange} />
-        <NumberInput label="식비" name="foodExpense" value={formData.foodExpense} placeholder="식비 관련 지출 금액을 입력" handleChange={handleChange} />
-        <NumberInput label="쇼핑" name="shoppingExpense" value={formData.shoppingExpense} placeholder="쇼핑 관련 지출 금액을 입력" handleChange={handleChange} />
-        <NumberInput label="교통" name="transportExpense" value={formData.transportExpense} placeholder="교통비 관련 지출 금액을 입력" handleChange={handleChange} />
-        <NumberInput label="주거/관리비" name="housingExpense" value={formData.housingExpense} placeholder="주거 및 관리비 관련 지출 금액을 입력" handleChange={handleChange} />
-        <NumberInput label="문화/여가" name="cultureExpense" value={formData.cultureExpense} placeholder="문화/여가 관련 지출 금액을 입력" handleChange={handleChange} />
-        <NumberInput label="생활용품" name="dailyGoodsExpense" value={formData.dailyGoodsExpense} placeholder="생활용품 관련 지출 금액을 입력" handleChange={handleChange} />
-        <NumberInput label="기타" name="otherExpense" value={formData.otherExpense} placeholder="기타 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="💰월급" name="monthlyIncome" value={formData.monthlyIncome} placeholder="매월 벌어들이는 총 급여를 입력" handleChange={handleChange} />
+        <NumberInput label="📈투자수익" name="investmentIncome" value={formData.investmentIncome} placeholder="부동산, 금융 등 투자 수익을 입력" handleChange={handleChange} />
+        <NumberInput label="🎁용돈" name="allowanceIncome" value={formData.allowanceIncome} placeholder="주기적 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="💼기타 부수입" name="otherIncome" value={formData.otherIncome} placeholder="기타 부수입 관련 지출 금액을 입력" handleChange={handleChange} />
+        <button type="submit" style={{
+          width: "100%",
+          marginTop: 24,
+          padding: "14px 0",
+          fontSize: 18,
+          fontWeight: 700,
+          color: "#fff",
+          background: "#4B4BFF",
+          borderRadius: 12,
+          border: "none",
+          boxShadow: "0 2px 8px #e0e0ff",
+          cursor: "pointer",
+        }}>
+          다음 (지출 입력)
+        </button>
+      </form>
+    </div>
+  );
+
+  const renderExpenseInput = () => (
+    <div style={{ padding: 24 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>4/4. 월 지출과 비율을 입력해주세요.</h2>
+      <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
+        <NumberInput label="🍽️식비" name="foodExpense" value={formData.foodExpense} placeholder="식비 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="🛍️쇼핑" name="shoppingExpense" value={formData.shoppingExpense} placeholder="쇼핑 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="🚌교통" name="transportExpense" value={formData.transportExpense} placeholder="교통비 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="🏡주거,관리비" name="housingExpense" value={formData.housingExpense} placeholder="주거 및 관리비 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="🎬문화/여가" name="cultureExpense" value={formData.cultureExpense} placeholder="문화/여가 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="🧴생활용품" name="dailyGoodsExpense" value={formData.dailyGoodsExpense} placeholder="생활용품 관련 지출 금액을 입력" handleChange={handleChange} />
+        <NumberInput label="⚙️기타" name="otherExpense" value={formData.otherExpense} placeholder="기타 지출 금액을 입력" handleChange={handleChange} />
         <button type="submit" style={{
           width: "100%",
           marginTop: 24,
@@ -249,7 +278,9 @@ const AnalysisPage = () => {
       case 2:
         return renderAssetInput();
       case 3:
-        return renderIncomeExpenseInput();
+        return renderIncomeInput();
+      case 4:
+        return renderExpenseInput();
       default:
         return renderStartHome();
     }

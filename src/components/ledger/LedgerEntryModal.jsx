@@ -11,17 +11,14 @@ const CATEGORIES = {
         { label: '생활용품', icon: '🧴' },
         { label: '대출', icon: '🏦' },
         { label: '카드 대금 출금', icon: '💳' },
-        { label: '부동산', icon: '🏠' },
-        { label: '기타 금융자산', icon: '💹' },
+        { label: '투자(부동산, 금융 등)', icon: '📈' },
         { label: '기타', icon: '⚙️' },
     ],
     수입: [
         { label: '월급', icon: '💰' },
-        { label: '투자수익', icon: '📈' },
         { label: '용돈', icon: '🎁' },
-        { label: '부수입', icon: '💼' },
-        { label: '부동산', icon: '🏠' },
-        { label: '기타 금융자산', icon: '💹' },
+        { label: '투자(부동산, 금융 등)', icon: '📈' },
+        { label: '기타 부수입', icon: '💼' },
     ],
 };
 

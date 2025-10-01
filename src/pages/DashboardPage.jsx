@@ -37,7 +37,7 @@ const DashboardPage = () => {
         yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 지출', data: [750, 720, 800, 850, 780, 820, 900, 880, 829, 790, 700, 650], borderColor: '#EF4444', tension: 0.3, fill: false }] },
     });
     const [incomeChartData, setIncomeChartData] = useState({
-        monthly: { labels: ['월급', '투자수익', '용돈', '부수입'], datasets: [{ data: [1000, 100, 50, 50], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24', '#8B5CF6'], borderWidth: 0 }] },
+        monthly: { labels: ['월급', '투자(부동산, 금융 등)', '용돈', '기타 부수입'], datasets: [{ data: [1000, 100, 50, 50], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24', '#8B5CF6'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '수입', data: [1200, 0, 1500], backgroundColor: '#22C55E' }] },
         yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 수입', data: [1100, 1180, 1250, 1220, 1200, 1280, 1300, 1260, 1200, 1320, 1400, 1450], borderColor: '#22C55E', tension: 0.3, fill: false }] },
     });
