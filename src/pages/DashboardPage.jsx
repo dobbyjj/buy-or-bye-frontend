@@ -17,6 +17,8 @@ const getAgeGroup = (age) => {
 const DashboardPage = () => {
     const [activeTab, setActiveTab] = useState('asset');
     const [ageGroupAverage, setAgeGroupAverage] = useState({ asset: 0, expense: 0, income: 0 });
+    const [startYear, setStartYear] = useState(2023);
+    const [endYear, setEndYear] = useState(2024);
 
     const summary = {
         currentAsset: 12500000,
@@ -35,7 +37,7 @@ const DashboardPage = () => {
         yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 지출', data: [750, 720, 800, 850, 780, 820, 900, 880, 829, 790, 700, 650], borderColor: '#EF4444', tension: 0.3, fill: false }] },
     });
     const [incomeChartData, setIncomeChartData] = useState({
-        monthly: { labels: ['월급', '투자수익', '부수입'], datasets: [{ data: [1000, 100, 100], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24'], borderWidth: 0 }] },
+        monthly: { labels: ['월급', '투자수익', '용돈', '부수입'], datasets: [{ data: [1000, 100, 50, 50], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24', '#8B5CF6'], borderWidth: 0 }] },
         comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '수입', data: [1200, 0, 1500], backgroundColor: '#22C55E' }] },
         yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 수입', data: [1100, 1180, 1250, 1220, 1200, 1280, 1300, 1260, 1200, 1320, 1400, 1450], borderColor: '#22C55E', tension: 0.3, fill: false }] },
     });
@@ -87,6 +89,27 @@ const DashboardPage = () => {
             }
         }));
     }, [ageGroupAverage]);
+
+    // 연도 validation 핸들러
+    const handleStartYearChange = (e) => {
+        const newStartYear = parseInt(e.target.value);
+        setStartYear(newStartYear);
+        
+        // 시작 연도가 끝 연도보다 크면 끝 연도를 시작 연도로 맞춤
+        if (newStartYear > endYear) {
+            setEndYear(newStartYear);
+        }
+    };
+
+    const handleEndYearChange = (e) => {
+        const newEndYear = parseInt(e.target.value);
+        setEndYear(newEndYear);
+        
+        // 끝 연도가 시작 연도보다 작으면 시작 연도를 끝 연도로 맞춤
+        if (newEndYear < startYear) {
+            setStartYear(newEndYear);
+        }
+    };
 
     const tabConfig = {
         asset: {
@@ -197,14 +220,72 @@ const DashboardPage = () => {
                     background: "#fff",
                     borderRadius: 12,
                     boxShadow: "0 2px 8px #eee",
-                    padding: "24px 16px",
+                    padding: "40px 20px",
                     marginBottom: 24,
+                    minHeight: "120px",
                 }}>
-                    <p style={{ fontSize: 15, fontWeight: 600, color: "#666", marginBottom: 8 }}>이번 달 자산, 지출, 수입 요약</p>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 700 }}>
-                        <span style={{ color: "#10B981" }}>자산: {summary.currentAsset.toLocaleString('ko-KR')}원</span>
-                        <span style={{ color: "#EF4444" }}>지출: {summary.monthlyExpense.toLocaleString('ko-KR')}원</span>
-                        <span style={{ color: "#3B82F6" }}>수입: {summary.monthlyIncome.toLocaleString('ko-KR')}원</span>
+                    {/* Period 선택 부분을 위쪽으로 이동 */}
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        marginBottom: 20,
+                        gap: "4px"
+                    }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: "#666", marginRight: "4px" }}>Period:</span>
+                        <select
+                            value={startYear}
+                            onChange={handleStartYearChange}
+                            style={{
+                                padding: "6px 10px",
+                                border: "1px solid #ddd",
+                                borderRadius: "6px",
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                color: "#333",
+                                background: "#fff",
+                                marginRight: "2px"
+                            }}
+                        >
+                            {Array.from({ length: 10 }, (_, i) => 2020 + i).map(year => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
+                        <span style={{ fontSize: 14, fontWeight: 500, color: "#666", margin: "0 2px" }}>-</span>
+                        <select
+                            value={endYear}
+                            onChange={handleEndYearChange}
+                            style={{
+                                padding: "6px 10px",
+                                border: "1px solid #ddd",
+                                borderRadius: "6px",
+                                fontSize: "14px",
+                                fontWeight: "500",
+                                color: "#333",
+                                background: "#fff",
+                                marginLeft: "2px",
+                                marginRight: "4px"
+                            }}
+                        >
+                            {Array.from({ length: 10 }, (_, i) => 2020 + i).map(year => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    <p style={{ fontSize: 16, fontWeight: 600, color: "#666", marginBottom: 20, textAlign: "left", marginLeft: "0px" }}>이번 달 자산, 지출, 수입 요약</p>
+                    <div style={{ 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        fontSize: 18, 
+                        fontWeight: 700,
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "12px",
+                    }}>
+                        <span style={{ color: "#10B981", flex: "1", textAlign: "left", minWidth: "120px" }}>자산: {summary.currentAsset.toLocaleString('ko-KR')}원</span>
+                        <span style={{ color: "#EF4444", flex: "1", textAlign: "center", minWidth: "120px" }}>지출: {summary.monthlyExpense.toLocaleString('ko-KR')}원</span>
+                        <span style={{ color: "#3B82F6", flex: "1", textAlign: "right", minWidth: "120px" }}>수입: {summary.monthlyIncome.toLocaleString('ko-KR')}원</span>
                     </div>
                 </div>
                 <div style={{ display: "flex", borderBottom: "1px solid #eee", marginBottom: 24 }}>

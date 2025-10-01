@@ -10,10 +10,7 @@ const months = [
   '7월', '8월', '9월', '10월', '11월', '12월'
 ];
 
-// 이체 카테고리 항목 추가
-const transferCategories = [
-  "부동산", "대출", "예금", "기타 금융자산", "카드 대금 출금"
-];
+
 
 const LedgerPage = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -120,7 +117,7 @@ const LedgerPage = () => {
       type: data.type,
       category: data.category,
       payment: data.payment,
-      transfer: data.transfer || null,
+
     };
 
     if (editingEntry) {
@@ -252,7 +249,6 @@ const LedgerPage = () => {
                   <span className="text-sm font-medium text-gray-800">{entry.memo || '내용 없음'}</span>
                   <span className="text-xs text-gray-500">
                     {entry.category || entry.type} ({entry.payment || '없음'})
-                    {entry.transfer ? ` / 이체: ${entry.transfer}` : ""}
                   </span>
                 </div>
                 <span className={`font-semibold text-lg ${entry.income > 0 ? 'text-blue-600' : 'text-red-500'}`}>
@@ -446,7 +442,6 @@ const LedgerPage = () => {
           editingEntry={editingEntry}
           onSubmit={handleEntrySubmit}
           onClose={handleCloseModal}
-          transferCategories={transferCategories} // 이체 항목 전달
         />
       )}
       
