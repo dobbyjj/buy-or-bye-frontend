@@ -9,6 +9,10 @@ const CATEGORIES = {
         { label: '주거,관리비', icon: '🏡' },
         { label: '문화/여가', icon: '🎬' },
         { label: '생활용품', icon: '🧴' },
+        { label: '대출', icon: '🏦' },
+        { label: '카드 대금 출금', icon: '💳' },
+        { label: '부동산', icon: '🏠' },
+        { label: '기타 금융자산', icon: '💹' },
         { label: '기타', icon: '⚙️' },
     ],
     수입: [
@@ -16,14 +20,8 @@ const CATEGORIES = {
         { label: '투자수익', icon: '📈' },
         { label: '용돈', icon: '🎁' },
         { label: '부수입', icon: '💼' },
-    ],
-    이체: [
-        { label: '내 계좌 이체', icon: '🔁' },
         { label: '부동산', icon: '🏠' },
-        { label: '대출', icon: '💳' },
-        { label: '예금', icon: '🏦' },
         { label: '기타 금융자산', icon: '💹' },
-        { label: '카드 대금 출금', icon: '💳' },
     ],
 };
 
@@ -44,19 +42,12 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
         memo: ''
     });
     
-    const [transferData, setTransferData] = useState({
-        amount: '',
-        category: '',
-        memo: ''
-    });
-    
     const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
     // 현재 타입에 따른 데이터 가져오기
     const getCurrentData = () => {
         switch (type) {
             case '지출': return expenseData;
             case '수입': return incomeData;
-            case '이체': return transferData;
             default: return expenseData;
         }
     };
@@ -70,15 +61,12 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
             case '수입':
                 setIncomeData(prev => ({ ...prev, [field]: value }));
                 break;
-            case '이체':
-                setTransferData(prev => ({ ...prev, [field]: value }));
-                break;
         }
     };
 
     useEffect(() => {
         if (editingEntry) {
-            const entryType = editingEntry.income > 0 ? '수입' : editingEntry.expense > 0 ? '지출' : '이체';
+            const entryType = editingEntry.income > 0 ? '수입' : '지출';
             setType(entryType);
             
             const amount = String(editingEntry.income || editingEntry.expense || 0);
@@ -94,12 +82,6 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
                 });
             } else if (entryType === '수입') {
                 setIncomeData({
-                    amount,
-                    category,
-                    memo
-                });
-            } else if (entryType === '이체') {
-                setTransferData({
                     amount,
                     category,
                     memo
@@ -163,7 +145,7 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
                 <form onSubmit={handleSubmit}>
                     {/* 타입 선택 */}
                     <div style={{ display: 'flex', marginBottom: 16, gap: 8 }}>
-                        {['지출', '수입', '이체'].map((t) => (
+                        {['지출', '수입'].map((t) => (
                             <button
                                 key={t}
                                 type="button"
@@ -258,7 +240,7 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose }) => {
                         <div style={{ marginBottom: 16 }}>
                             <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>결제 수단</label>
                             <div style={{ display: 'flex', gap: 8 }}>
-                                {['카드', '현금'].map((p) => (
+                                {['신용 카드', '현금(체크카드, 예금 등)'].map((p) => (
                                     <button
                                         key={p}
                                         type="button"

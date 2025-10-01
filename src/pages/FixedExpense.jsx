@@ -116,7 +116,7 @@ function FixedExpense() {
               marginBottom: 12,
             }}
           />
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>출금계좌</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>결제 수단</div>
           <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
             <button
               type="button"
@@ -133,7 +133,7 @@ function FixedExpense() {
                 cursor: "pointer",
               }}
             >
-              <span role="img" aria-label="카드">💳 카드</span>
+              <span role="img" aria-label="신용 카드">💳 신용 카드</span>
             </button>
             <button
               type="button"
@@ -150,28 +150,42 @@ function FixedExpense() {
                 cursor: "pointer",
               }}
             >
-              <span role="img" aria-label="현금(및 예금)">💵 현금(및 예금)</span>
+              <span role="img" aria-label="현금(체크카드, 예금 등)">💵 현금(체크카드, 예금 등)</span>
             </button>
           </div>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>분류</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-            {["식비", "주거비", "통신비", "건강", "문화", "교육", "교통", "회비", "이자", "보험", "기타"].map((cat) => (
+            {[
+              { label: "식비", icon: "🍽️" },
+              { label: "쇼핑", icon: "🛍️" },
+              { label: "교통", icon: "🚌" },
+              { label: "주거,관리비", icon: "🏡" },
+              { label: "문화/여가", icon: "🎬" },
+              { label: "생활용품", icon: "🧴" },
+              { label: "대출", icon: "🏦" },
+              { label: "기타", icon: "⚙️" },
+
+            ].map((cat) => (
               <button
-                key={cat}
+                key={cat.label}
                 type="button"
-                onClick={() => setCategory(cat)}
+                onClick={() => setCategory(cat.label)}
                 style={{
-                  background: category === cat ? "#4B4BFF" : "#f5f5f5",
-                  color: category === cat ? "#fff" : "#222",
+                  background: category === cat.label ? "#4B4BFF" : "#f5f5f5",
+                  color: category === cat.label ? "#fff" : "#222",
                   border: "none",
                   borderRadius: 8,
                   padding: "8px 18px",
                   fontWeight: 600,
                   fontSize: 15,
                   cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
-                {cat}
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
               </button>
             ))}
           </div>
