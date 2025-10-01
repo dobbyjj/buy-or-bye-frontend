@@ -1,8 +1,79 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom"; // useNavigate 추가
 import { FiRotateCw, FiBarChart2, FiShare } from "react-icons/fi";
 import BottomNavbar from "../components/common/BottomNavbar";
+import { mbtiResultData } from "../data/resultData"; // 결과 데이터 임포트
+
+// MBTI 결과를 계산하는 함수 (새로 추가됨)
+const calculateMBTI = (answers) => {
+  if (!answers || answers.length === 0) {
+    return 'UNKNOWN'; // 답변이 없는 경우
+  }
+
+  // 각 유형별 카운트 초기화
+  const counts = { E: 0, I: 0, N: 0, S: 0, T: 0, F: 0, J: 0, P: 0 };
+  answers.forEach(type => {
+    if (counts.hasOwnProperty(type)) {
+      counts[type]++;
+    }
+  });
+
+  const personality = [];
+  
+  // 1. E vs I (외향 vs 내향)
+  personality.push(counts.E >= counts.I ? 'E' : 'I');
+  
+  // 2. N vs S (직관 vs 감각)
+  // questions.js 파일의 주석에 따라 N이 직관, S가 감각으로 매핑됨
+  personality.push(counts.N >= counts.S ? 'N' : 'S');
+  
+  // 3. T vs F (사고 vs 감정)
+  personality.push(counts.T >= counts.F ? 'T' : 'F');
+  
+  // 4. J vs P (판단 vs 인식)
+  personality.push(counts.J >= counts.P ? 'J' : 'P');
+
+  return personality.join('');
+};
 
 function ResultPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const finalAnswers = location.state?.finalAnswers; // QuizPage에서 전달한 답변 배열
+
+  // 답변 결과를 바탕으로 MBTI 계산 및 결과 데이터 가져오기
+  const { mbtiType, resultData } = useMemo(() => {
+    const calculatedMBTI = calculateMBTI(finalAnswers);
+    const data = mbtiResultData[calculatedMBTI] || {
+        type: "알 수 없음",
+        title: "테스트를 다시 진행해주세요",
+        description: "충분한 답변이 수집되지 않았습니다."
+    };
+    return { mbtiType: calculatedMBTI, resultData: data };
+  }, [finalAnswers]);
+  
+  // 공유 기능 핸들러
+  const handleShare = () => {
+    const shareText = `나의 소비 성향 MBTI는 ${mbtiType} (${resultData.title})! ${resultData.description} 결과를 확인해보세요!`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: '나의 소비 성향 MBTI 결과',
+        text: shareText,
+        url: window.location.href,
+      }).catch(console.error);
+    } else {
+      // 대체 복사 기능 (예시)
+      const shareUrl = `${window.location.origin}/result?mbti=${mbtiType}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(`${shareText}\n링크: ${shareUrl}`);
+        alert("결과가 클립보드에 복사되었습니다!");
+      } else {
+        alert("공유 기능을 지원하지 않는 브라우저입니다. (결과: " + mbtiType + ")");
+      }
+    }
+  };
+
   return (
     <div
       style={{
@@ -43,10 +114,10 @@ function ResultPage() {
             maxWidth: 260,
           }}
         >
-          INFP
+          {mbtiType} {/* 👈 동적으로 계산된 MBTI 표시 */}
         </div>
         <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
-          <span role="img" aria-label="money">💸</span> 개인 만족형 낭만 소비
+          <span role="img" aria-label="money">💸</span> {resultData.title} {/* 👈 동적으로 계산된 결과 타이틀 표시 */}
         </div>
         <div
           style={{
@@ -60,7 +131,7 @@ function ResultPage() {
             boxShadow: "0 2px 8px #e0e0ff",
           }}
         >
-          개인 만족, 브랜드 스토리·경험에 즉흥적·감성적 소비
+          {resultData.description} {/* 👈 동적으로 계산된 결과 설명 표시 */}
         </div>
         {/* 버튼 영역 */}
         <div
@@ -90,7 +161,7 @@ function ResultPage() {
               cursor: "pointer",
               boxShadow: "0 2px 8px #e0e0ff",
             }}
-            onClick={() => window.location.href = "/"}
+            onClick={() => navigate("/")}
           >
             <FiRotateCw size={22} />
             테스트 다시 하기
@@ -113,7 +184,7 @@ function ResultPage() {
               cursor: "pointer",
               boxShadow: "0 2px 8px #e0e0ff",
             }}
-            onClick={() => window.location.href = "/analysis"}
+            onClick={() => navigate("/analysis")}
           >
             <FiBarChart2 size={22} />
             재무 분석 이어 하기
@@ -136,10 +207,7 @@ function ResultPage() {
               cursor: "pointer",
               boxShadow: "0 2px 8px #e0e0ff",
             }}
-            onClick={() => window.navigator.share
-              ? window.navigator.share({ title: "소비 성향 MBTI", url: window.location.href })
-              : alert("공유 기능을 지원하지 않는 브라우저입니다.")
-            }
+            onClick={handleShare}
           >
             <FiShare size={22} />
             공유하기
