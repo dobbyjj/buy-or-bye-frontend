@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MdArrowBack } from "react-icons/md";
+import { IoRefreshOutline } from "react-icons/io5";
 import BottomNavbar from "../components/common/BottomNavbar"; // 상단에 import 추가
 
 const ErrorReportPage = () => {
@@ -64,26 +64,6 @@ return (
         position: "relative", 
         marginBottom: 24 
       }}>
-        <button
-          onClick={handleGoBack}
-          style={{
-            position: "absolute",
-            left: 0,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "8px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "50%",
-            transition: "background-color 0.2s"
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = "#f0f0f0"}
-          onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
-        >
-          <MdArrowBack size={24} color="#333" />
-        </button>
         <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
           오류 신고
         </h2>
@@ -172,6 +152,33 @@ return (
         </button>
       </form>
     </div>
+
+    {/* 흰 박스 바깥쪽 회색 원형 돌아가기 버튼 */}
+    <button
+      onClick={handleGoBack}
+      style={{
+        position: "fixed",
+        bottom: 100,
+        right: 20,
+        width: 56,
+        height: 56,
+        borderRadius: "50%",
+        backgroundColor: "#9CA3AF",
+        border: "none",
+        color: "white",
+        fontSize: 24,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+        zIndex: 1000,
+      }}
+      aria-label="이전으로 가기"
+    >
+      <IoRefreshOutline style={{ transform: "scaleX(-1)" }} />
+    </button>
+
     <BottomNavbar active="chatbot" />
   </div>
 );

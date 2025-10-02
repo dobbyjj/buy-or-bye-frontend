@@ -35,40 +35,118 @@ const DashboardPage = () => {
     const [activeTab, setActiveTab] = useState('asset');
     const [startYear, setStartYear] = useState(2023);
     const [endYear, setEndYear] = useState(2024);
-
-    const summary = {
+    const [summary, setSummary] = useState({
         currentAsset: 12500000,
         monthlyIncome: 1200000,
         monthlyExpense: 829000,
-    };
+    });
+    const [isAnalysisData, setIsAnalysisData] = useState(true); // Analysis 데이터인지 가계부 데이터인지 구분
 
     const [assetChartData, setAssetChartData] = useState({
         ratio: { labels: ['부동산', '대출', '예금/현금', '기타 자산'], datasets: [{ data: [5000000, 2000000, 3500000, 2000000], backgroundColor: ['#EF4444', '#F59E0B', '#14B8A6', '#3B82F6'], borderWidth: 0 }] },
-        comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '자산', data: [1250, 0, 1500], backgroundColor: '#3B82F6' }] },
-        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 자산', data: [1000, 1050, 1150, 1180, 1200, 1160, 1100, 1180, 1250, 1280, 1300, 1350], borderColor: '#10B981', tension: 0.3, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.2)' }] },
+        comparison: { 
+            labels: ['나', '동 연령 평균', '재무 목표'], 
+            datasets: [
+                { label: '부동산', data: [500, 0, 600], backgroundColor: '#EF4444', stack: 'stack1' },
+                { label: '대출', data: [200, 0, 300], backgroundColor: '#F59E0B', stack: 'stack1' },
+                { label: '예금/현금', data: [350, 0, 400], backgroundColor: '#14B8A6', stack: 'stack1' },
+                { label: '기타 자산', data: [200, 0, 200], backgroundColor: '#3B82F6', stack: 'stack1' }
+            ]
+        },
+        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 자산', data: [], borderColor: '#10B981', tension: 0.3, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.2)' }] },
     });
     const [expenseChartData, setExpenseChartData] = useState({
-        monthly: { labels: ['식비', '쇼핑', '교통', '주거/관리', '문화/여가', '화장품', '기타'], datasets: [{ data: [350000, 100000, 150000, 200000, 129000, 80000, 90000], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'], borderWidth: 0 }] },
-        comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '지출', data: [82.9, 0, 65], backgroundColor: '#FF6384' }] },
-        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 지출', data: [75, 72, 80, 85, 78, 82, 90, 88, 82.9, 79, 70, 65], borderColor: '#EF4444', tension: 0.3, fill: false }] },
+        monthly: { labels: ['식비', '쇼핑', '교통', '주거/관리', '문화/여가', '생활용품', '기타'], datasets: [{ data: [350000, 100000, 150000, 200000, 129000, 80000, 90000], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'], borderWidth: 0 }] },
+        comparison: { 
+            labels: ['나', '동 연령 평균', '재무 목표'], 
+            datasets: [
+                { label: '식비', data: [35, 0, 25], backgroundColor: '#FF6384', stack: 'stack1' },
+                { label: '쇼핑', data: [10, 0, 8], backgroundColor: '#36A2EB', stack: 'stack1' },
+                { label: '교통', data: [15, 0, 10], backgroundColor: '#FFCE56', stack: 'stack1' },
+                { label: '주거/관리', data: [20, 0, 15], backgroundColor: '#4BC0C0', stack: 'stack1' },
+                { label: '문화/여가', data: [12.9, 0, 5], backgroundColor: '#9966FF', stack: 'stack1' },
+                { label: '생활용품', data: [8, 0, 2], backgroundColor: '#FF9F40', stack: 'stack1' },
+                { label: '기타', data: [9, 0, 5], backgroundColor: '#C9CBCF', stack: 'stack1' }
+            ]
+        },
+                yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 지출', data: [], borderColor: '#EF4444', tension: 0.3, fill: true, backgroundColor: 'rgba(239, 68, 68, 0.2)' }] },
     });
     const [incomeChartData, setIncomeChartData] = useState({
-        monthly: { labels: ['월급', '투자', '용돈', '기타'], datasets: [{ data: [1000000, 100000, 50000, 50000], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24', '#8B5CF6'], borderWidth: 0 }] },
-        comparison: { labels: ['나', '동 연령 평균', '재무 목표'], datasets: [{ label: '수입', data: [120, 0, 150], backgroundColor: '#22C55E' }] },
-        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 수입', data: [110, 118, 125, 122, 120, 128, 130, 126, 120, 132, 140, 145], borderColor: '#22C55E', tension: 0.3, fill: false }] },
+        monthly: { labels: ['월급', '투자(부동산, 금융 등)', '용돈', '기타 부수입'], datasets: [{ data: [1000000, 100000, 50000, 50000], backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24', '#8B5CF6'], borderWidth: 0 }] },
+        comparison: { 
+            labels: ['나', '동 연령 평균', '재무 목표'], 
+            datasets: [
+                { label: '월급', data: [100, 0, 120], backgroundColor: '#22C55E', stack: 'stack1' },
+                { label: '투자(부동산, 금융 등)', data: [10, 0, 15], backgroundColor: '#14B8A6', stack: 'stack1' },
+                { label: '용돈', data: [5, 0, 10], backgroundColor: '#FBBF24', stack: 'stack1' },
+                { label: '기타 부수입', data: [5, 0, 5], backgroundColor: '#8B5CF6', stack: 'stack1' }
+            ]
+        },
+        yearly: { labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], datasets: [{ label: '총 수입', data: [], borderColor: '#22C55E', tension: 0.3, fill: false }] },
     });
     
     useEffect(() => {
         const fetchAndSetData = async () => {
             try {
-                // 👇 사용자 정보가 없으면 기본 나이(25세)를 사용하도록 수정
-                let userAge = 25; 
+                // Ledger에서 자산 업데이트 데이터 확인
+                const dashboardAssetUpdate = localStorage.getItem('dashboardAssetUpdate');
+                if (dashboardAssetUpdate) {
+                    const assetData = JSON.parse(dashboardAssetUpdate);
+                    setAssetChartData(prev => ({
+                        ...prev,
+                        ratio: assetData.ratio,
+                        comparison: assetData.comparison
+                    }));
+                    // 업데이트 완료 후 데이터 제거
+                    localStorage.removeItem('dashboardAssetUpdate');
+                }
+
+                // Analysis 데이터 읽어오기
+                let userAge = 25;
+                let analysisData = null;
                 const userDataString = localStorage.getItem('userData');
                 if (userDataString) {
                     const userData = JSON.parse(userDataString);
+                    analysisData = userData;
                     if (userData && userData.age) {
                         userAge = parseInt(userData.age, 10);
                     }
+                }
+
+                // 가계부 데이터 확인 (향후 구현)
+                // const ledgerDataString = localStorage.getItem('ledgerData');
+                // let ledgerData = null;
+                // if (ledgerDataString) {
+                //     ledgerData = JSON.parse(ledgerDataString);
+                // }
+
+                // Summary 데이터 업데이트 (Analysis 데이터 기반)
+                if (analysisData) {
+                    const newSummary = {
+                        currentAsset: (
+                            parseInt(analysisData.realEstateValue || 0) + 
+                            parseInt(analysisData.depositAmount || 0) + 
+                            parseInt(analysisData.otherInvestments || 0) - 
+                            parseInt(analysisData.loanAmount || 0)
+                        ),
+                        monthlyIncome: (
+                            parseInt(analysisData.monthlyIncome || 0) + 
+                            parseInt(analysisData.investmentIncome || 0) + 
+                            parseInt(analysisData.allowanceIncome || 0) + 
+                            parseInt(analysisData.otherIncome || 0)
+                        ),
+                        monthlyExpense: (
+                            parseInt(analysisData.foodExpense || 0) + 
+                            parseInt(analysisData.shoppingExpense || 0) + 
+                            parseInt(analysisData.transportExpense || 0) + 
+                            parseInt(analysisData.housingExpense || 0) + 
+                            parseInt(analysisData.cultureExpense || 0) + 
+                            parseInt(analysisData.dailyGoodsExpense || 0) + 
+                            parseInt(analysisData.otherExpense || 0)
+                        )
+                    };
+                    setSummary(newSummary);
+                    setIsAnalysisData(true);
                 }
 
                 // --- 수입 평균 계산 ---
@@ -86,20 +164,149 @@ const DashboardPage = () => {
                 const averageData = await db.averages.where('age_group').equals(ageGroupForDexie).first();
                 const avgAssetInTenThousand = averageData ? averageData.avg_asset : 0;
                 
-                // --- 모든 차트 데이터 업데이트 ---
+                // --- 수입 차트 데이터 업데이트 (각 항목별로) ---
+                // 도넛 차트와 동일한 데이터 사용 (만원 단위로 변환)
+                const mySalary = parseInt(analysisData.monthlyIncome || 0) / 10000;
+                const myInvestment = parseInt(analysisData.investmentIncome || 0) / 10000;
+                const myAllowance = parseInt(analysisData.allowanceIncome || 0) / 10000;
+                const myOtherIncome = parseInt(analysisData.otherIncome || 0) / 10000;
+                
+                // 동 연령 평균 수입 데이터 (같은 비율 적용)
+                const avgSalary = avgIncomeInTenThousand * 0.833;
+                const avgInvestment = avgIncomeInTenThousand * 0.083;
+                const avgAllowance = avgIncomeInTenThousand * 0.042;
+                const avgOtherIncome = avgIncomeInTenThousand * 0.042;
+                
+                // 재무 목표는 기본값 유지
+                const targetSalary = 120;
+                const targetInvestment = 15;
+                const targetAllowance = 10;
+                const targetOtherIncome = 5;
+
                 setIncomeChartData(prev => ({
                     ...prev,
-                    comparison: { ...prev.comparison, datasets: [{ ...prev.comparison.datasets[0], data: [summary.monthlyIncome / 10000, avgIncomeInTenThousand, 150] }] }
+                    comparison: { 
+                        labels: ['나', '동 연령 평균', '재무 목표'], 
+                        datasets: [
+                            { label: '월급', data: [mySalary, avgSalary, targetSalary], backgroundColor: '#22C55E', stack: 'stack1' },
+                            { label: '투자(부동산, 금융 등)', data: [myInvestment, avgInvestment, targetInvestment], backgroundColor: '#14B8A6', stack: 'stack1' },
+                            { label: '용돈', data: [myAllowance, avgAllowance, targetAllowance], backgroundColor: '#FBBF24', stack: 'stack1' },
+                            { label: '기타 부수입', data: [myOtherIncome, avgOtherIncome, targetOtherIncome], backgroundColor: '#8B5CF6', stack: 'stack1' }
+                        ]
+                    }
                 }));
+
+                // --- 지출 차트 데이터 업데이트 (각 항목별로) ---
+                // 도넛 차트와 동일한 데이터 사용 (만원 단위로 변환)
+                const myFood = parseInt(analysisData.foodExpense || 0) / 10000;
+                const myShopping = parseInt(analysisData.shoppingExpense || 0) / 10000;
+                const myTransport = parseInt(analysisData.transportExpense || 0) / 10000;
+                const myHousing = parseInt(analysisData.housingExpense || 0) / 10000;
+                const myCulture = parseInt(analysisData.cultureExpense || 0) / 10000;
+                const myCosmetics = parseInt(analysisData.dailyGoodsExpense || 0) / 10000;
+                const myOtherExpense = parseInt(analysisData.otherExpense || 0) / 10000;
+                
+                // 동 연령 평균 지출 (같은 비율 적용)
+                const avgFood = avgExpenseInTenThousand * 0.30;
+                const avgShopping = avgExpenseInTenThousand * 0.15;
+                const avgTransport = avgExpenseInTenThousand * 0.12;
+                const avgHousing = avgExpenseInTenThousand * 0.25;
+                const avgCulture = avgExpenseInTenThousand * 0.10;
+                const avgCosmetics = avgExpenseInTenThousand * 0.05;
+                const avgOtherExpense = avgExpenseInTenThousand * 0.08;
 
                 setExpenseChartData(prev => ({
                     ...prev,
-                    comparison: { ...prev.comparison, datasets: [{ ...prev.comparison.datasets[0], data: [summary.monthlyExpense / 10000, avgExpenseInTenThousand, 65] }] }
+                    comparison: { 
+                        labels: ['나', '동 연령 평균', '재무 목표'], 
+                        datasets: [
+                            { label: '식비', data: [myFood, avgFood, 25], backgroundColor: '#FF6384', stack: 'stack1' },
+                            { label: '쇼핑', data: [myShopping, avgShopping, 8], backgroundColor: '#36A2EB', stack: 'stack1' },
+                            { label: '교통', data: [myTransport, avgTransport, 10], backgroundColor: '#FFCE56', stack: 'stack1' },
+                            { label: '주거/관리', data: [myHousing, avgHousing, 15], backgroundColor: '#4BC0C0', stack: 'stack1' },
+                            { label: '문화/여가', data: [myCulture, avgCulture, 5], backgroundColor: '#9966FF', stack: 'stack1' },
+                            { label: '생활용품', data: [myCosmetics, avgCosmetics, 2], backgroundColor: '#FF9F40', stack: 'stack1' },
+                            { label: '기타', data: [myOtherExpense, avgOtherExpense, 5], backgroundColor: '#C9CBCF', stack: 'stack1' }
+                        ]
+                    }
                 }));
                 
+                // --- 자산 차트 데이터 업데이트 (각 항목별로) ---
+                // 도넛 차트와 동일한 데이터 사용 (만원 단위로 변환)
+                const myRealEstate = parseInt(analysisData.realEstateValue || 0) / 10000;
+                const myLoan = parseInt(analysisData.loanAmount || 0) / 10000;
+                const myDeposit = parseInt(analysisData.depositAmount || 0) / 10000;
+                const myOtherAsset = parseInt(analysisData.otherInvestments || 0) / 10000;
+                
+                // 동 연령 평균 자산 (다른 비율 적용)
+                const avgRealEstate = avgAssetInTenThousand * 0.35;
+                const avgLoan = avgAssetInTenThousand * 0.15;
+                const avgDeposit = avgAssetInTenThousand * 0.30;
+                const avgOtherAsset = avgAssetInTenThousand * 0.20;
+
                 setAssetChartData(prev => ({
                     ...prev,
-                    comparison: { ...prev.comparison, datasets: [{ ...prev.comparison.datasets[0], data: [summary.currentAsset / 10000, avgAssetInTenThousand, 1500] }] }
+                    ratio: { 
+                        labels: ['부동산', '대출', '예금/현금', '기타 자산'], 
+                        datasets: [{ 
+                            data: [
+                                parseInt(analysisData.realEstateValue || 0), 
+                                parseInt(analysisData.loanAmount || 0), 
+                                parseInt(analysisData.depositAmount || 0), 
+                                parseInt(analysisData.otherInvestments || 0)
+                            ], 
+                            backgroundColor: ['#EF4444', '#F59E0B', '#14B8A6', '#3B82F6'], 
+                            borderWidth: 0 
+                        }] 
+                    },
+                    comparison: { 
+                        labels: ['나', '동 연령 평균', '재무 목표'], 
+                        datasets: [
+                            { label: '부동산', data: [myRealEstate, avgRealEstate, 600], backgroundColor: '#EF4444', stack: 'stack1' },
+                            { label: '대출', data: [myLoan, avgLoan, 300], backgroundColor: '#F59E0B', stack: 'stack1' },
+                            { label: '예금/현금', data: [myDeposit, avgDeposit, 400], backgroundColor: '#14B8A6', stack: 'stack1' },
+                            { label: '기타 자산', data: [myOtherAsset, avgOtherAsset, 200], backgroundColor: '#3B82F6', stack: 'stack1' }
+                        ]
+                    }
+                }));
+
+                // 수입 도넛 차트 데이터 업데이트
+                setIncomeChartData(prev => ({
+                    ...prev,
+                    monthly: { 
+                        labels: ['월급', '투자(부동산, 금융 등)', '용돈', '기타 부수입'], 
+                        datasets: [{ 
+                            data: [
+                                parseInt(analysisData.monthlyIncome || 0),
+                                parseInt(analysisData.investmentIncome || 0), 
+                                parseInt(analysisData.allowanceIncome || 0), 
+                                parseInt(analysisData.otherIncome || 0)
+                            ], 
+                            backgroundColor: ['#22C55E', '#14B8A6', '#FBBF24', '#8B5CF6'], 
+                            borderWidth: 0 
+                        }] 
+                    }
+                }));
+
+                // 지출 도넛 차트 데이터 업데이트  
+                setExpenseChartData(prev => ({
+                    ...prev,
+                    monthly: { 
+                        labels: ['식비', '쇼핑', '교통', '주거/관리', '문화/여가', '생활용품', '기타'], 
+                        datasets: [{ 
+                            data: [
+                                parseInt(analysisData.foodExpense || 0),
+                                parseInt(analysisData.shoppingExpense || 0), 
+                                parseInt(analysisData.transportExpense || 0), 
+                                parseInt(analysisData.housingExpense || 0), 
+                                parseInt(analysisData.cultureExpense || 0), 
+                                parseInt(analysisData.dailyGoodsExpense || 0), 
+                                parseInt(analysisData.otherExpense || 0)
+                            ], 
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'], 
+                            borderWidth: 0 
+                        }] 
+                    }
                 }));
 
             } catch (error) {
@@ -151,9 +358,17 @@ const DashboardPage = () => {
 
     const commonOptions = {
         responsive: true,
-        maintainAspectRatio: false, // 👈 차트가 꽉 차도록 설정
+        maintainAspectRatio: false,
         plugins: {
-            legend: { display: false },
+            legend: { 
+                display: true,
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15,
+                    fontSize: 12
+                }
+            },
             tooltip: {
                 callbacks: {
                     label: (context) => {
@@ -167,8 +382,16 @@ const DashboardPage = () => {
             datalabels: { display: false }
         },
         scales: {
-            y: { beginAtZero: true, display: true, ticks: { callback: (value) => value + '만' } },
-            x: { display: true }
+            y: { 
+                beginAtZero: true, 
+                display: true, 
+                stacked: true,
+                ticks: { callback: (value) => value + '만' } 
+            },
+            x: { 
+                display: true,
+                stacked: true
+            }
         },
     };
     
@@ -205,9 +428,7 @@ const DashboardPage = () => {
         },
     };
 
-    const handleAnalysisEdit = () => {
-        window.location.href = "/analysis?page=3";
-    };
+
 
     return (
         <div style={{ minHeight: "100vh", background: "#f9f9f9", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: 80 }}>
@@ -240,9 +461,9 @@ const DashboardPage = () => {
                 </div>
                 <section style={{ marginBottom: 40 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 18 }}>{currentConfig.title}</h2>
-                    <ChartBlock config={currentConfig.chart1} options={doughnutOptions} isDoughnut={true} onEdit={handleAnalysisEdit} />
-                    <ChartBlock config={currentConfig.chart2} options={commonOptions} wide={true} />
-                    <ChartBlock config={currentConfig.chart3} options={commonOptions} wide={true} />
+                    <ChartBlock config={currentConfig.chart1} options={doughnutOptions} isDoughnut={true} isAnalysisData={isAnalysisData} />
+                    <ChartBlock config={currentConfig.chart2} options={commonOptions} wide={true} showGoalEdit={true} activeTab={activeTab} isAnalysisData={isAnalysisData} />
+                    <ChartBlock config={currentConfig.chart3} options={commonOptions} wide={true} isAnalysisData={isAnalysisData} />
                 </section>
             </div>
             <BottomNavbar active="dashboard" />
@@ -252,8 +473,12 @@ const DashboardPage = () => {
 
 export default DashboardPage;
 
-const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false }) => {
+const ChartBlock = ({ config, options, isDoughnut = false, showGoalEdit = false, activeTab, isAnalysisData = false }) => {
     const ChartComponent = config.type;
+
+    const handleGoalEdit = () => {
+        window.location.href = `/goal-edit?type=${activeTab}`;
+    };
 
     const renderDoughnutLegend = () => {
         if (!config.source.datasets || config.source.datasets.length === 0) {
@@ -297,8 +522,18 @@ const ChartBlock = ({ config, options, isDoughnut = false, onEdit, wide = false 
         <div style={{ background: "#fff", borderRadius: 12, boxShadow: "0 2px 8px #eee", padding: "24px 16px", marginBottom: 24, border: "1px solid #eee" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <h3 style={{ fontSize: 17, fontWeight: 600, color: "#444" }}>{config.title}</h3>
-                {isDoughnut && (<button onClick={onEdit} style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "4px 14px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>편집</button>)}
+                {showGoalEdit && (<button onClick={handleGoalEdit} style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "4px 14px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>목표치 변경</button>)}
             </div>
+            {isAnalysisData && (
+                <div style={{ 
+                    marginBottom: 16, 
+                    fontSize: 13, 
+                    color: "#999",
+                    fontStyle: "italic"
+                }}>
+                    재무 상태 분석시 입력해주신 정보는 가계부를 사용하면 실제 숫자로 대체됩니다.
+                </div>
+            )}
             {isDoughnut ? (
                 <div style={{ display: 'flex', alignItems: 'center', position: "relative", height: "300px" }}>
                     <div style={{ flex: 0.2, position: 'relative', height: '100%' }}>

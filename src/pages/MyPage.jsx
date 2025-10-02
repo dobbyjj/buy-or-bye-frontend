@@ -57,9 +57,9 @@ const MyPage = () => {
   const [pwError, setPwError] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPw, setSignupPw] = useState("");
-  const [signupNickname, setSignupNickname] = useState(""); 
+  const [signupNickname, setSignupNickname] = useState("");
   const [signupEmailError, setSignupEmailError] = useState("");
-  const [signupEmailSuccess, setSignupEmailSuccess] = useState(""); 
+  const [signupEmailSuccess, setSignupEmailSuccess] = useState("");
   const [signupPwError, setSignupPwError] = useState("");
   const [signupSuccessMessage, setSignupSuccessMessage] = useState("");
   const [emailChecked, setEmailChecked] = useState(false);
@@ -90,8 +90,8 @@ const MyPage = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/user/check/?email=${signupEmail}`);
-      
+      const response = await fetch(`${API_BASE_URL}/api/user/check?email=${signupEmail}`);
+
       if (response.ok) {
         const data = await response.json();
         if (data.available === true) {
@@ -112,7 +112,7 @@ const MyPage = () => {
       setEmailChecked(false);
     }
   };
-  
+
   const handleSignup = async () => {
     setSignupEmailError("");
     setSignupPwError("");
@@ -161,8 +161,8 @@ const MyPage = () => {
       setSignupPwError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
-
-  // 👇 서버 에러 메시지를 기반으로 수정한 최종 로그인 함수
+  
+  // 수정된 로그인 함수
   const handleLogin = async () => {
     if (!loginEmail || !loginPassword) {
       setLoginError('이메일과 비밀번호를 모두 입력해주세요.');
@@ -171,13 +171,11 @@ const MyPage = () => {
     setLoginError('');
 
     try {
-      // URL에 쿼리 파라미터로 이메일과 비밀번호를 추가합니다.
       const response = await fetch(`${API_BASE_URL}/api/auth/login?email=${encodeURIComponent(loginEmail)}&password=${encodeURIComponent(loginPassword)}`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
         },
-        // Body는 비워둡니다.
       });
 
       if (response.ok) {
@@ -187,10 +185,11 @@ const MyPage = () => {
         setId(loginEmail);
         setPassword(loginPassword);
         setIsLoggedIn(true);
-        setShowLoginModal(false);
         setLoginEmail("");
         setLoginPassword("");
-        alert('로그인 되었습니다.');
+
+        // 로그인 성공 시 바로 모달 닫기
+        setShowLoginModal(false);
 
       } else {
         setLoginError('이메일 또는 비밀번호가 올바르지 않습니다.');
@@ -223,8 +222,9 @@ const MyPage = () => {
     }
   };
 
+  // 수정된 로그아웃 함수
   const handleLogout = () => {
-    alert("로그아웃 되었습니다.");
+    // alert("로그아웃 되었습니다."); // alert 제거
     setShowLoginModal(false);
     setIsLoggedIn(false);
     setId("");
