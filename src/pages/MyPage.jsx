@@ -57,15 +57,20 @@ const MyPage = () => {
   const [pwError, setPwError] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPw, setSignupPw] = useState("");
+  const [signupNickname, setSignupNickname] = useState(""); 
   const [signupEmailError, setSignupEmailError] = useState("");
+  const [signupEmailSuccess, setSignupEmailSuccess] = useState(""); 
   const [signupPwError, setSignupPwError] = useState("");
+  const [signupSuccessMessage, setSignupSuccessMessage] = useState("");
   const [emailChecked, setEmailChecked] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
+  const API_BASE_URL = "https://buy-or-bye-backend.onrender.com";
+
   const validatePw = (pw) => {
-    const regex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}[\\]:;<>,.?~\\\/-]).{8,15}$/;
+    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,15}$/;
     return regex.test(pw);
   };
 
@@ -74,46 +79,126 @@ const MyPage = () => {
     return regex.test(value);
   };
 
-  const handleEmailCheck = () => {
-    if (!validateEmail(signupEmail)) {
-      setSignupEmailError("올바른 이메일 주소를 입력하세요.");
-      setEmailChecked(false);
-      return;
-    }
-    if (signupEmail === email) {
-      setSignupEmailError("이미 가입된 이메일입니다.");
-      setEmailChecked(false);
-      return;
-    }
+  const handleEmailCheck = async () => {
     setSignupEmailError("");
-    setEmailChecked(true);
-    alert("사용 가능한 이메일입니다.");
-  };
+    setSignupEmailSuccess("");
+    setEmailChecked(false);
 
-  const handleSignup = () => {
     if (!validateEmail(signupEmail)) {
       setSignupEmailError("올바른 이메일 주소를 입력하세요.");
       return;
     }
-    if (!validatePw(signupPw)) {
-      setSignupPwError("문자, 숫자, 특수기호 포함 8~15자로 입력하세요.");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/check/?email=${signupEmail}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.available === true) {
+          setSignupEmailSuccess("사용 가능한 이메일입니다.");
+          setEmailChecked(true);
+        } else {
+          setSignupEmailError("이미 가입된 이메일입니다. 다른 이메일을 사용해주세요.");
+          setEmailChecked(false);
+        }
+      } else {
+        const errorData = await response.json();
+        setSignupEmailError(errorData.detail || "중복 확인 중 오류가 발생했습니다.");
+        setEmailChecked(false);
+      }
+    } catch (error) {
+      console.error("Email check error:", error);
+      setSignupEmailError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      setEmailChecked(false);
+    }
+  };
+  
+  const handleSignup = async () => {
+    setSignupEmailError("");
+    setSignupPwError("");
+    setSignupSuccessMessage("");
+
+    if (!signupNickname.trim()) {
+        setSignupPwError("닉네임을 입력해주세요.");
+        return;
+    }
+    if (!validateEmail(signupEmail)) {
+      setSignupEmailError("올바른 이메일 주소를 입력하세요.");
       return;
     }
     if (!emailChecked) {
       setSignupEmailError("이메일 중복 확인을 해주세요.");
       return;
     }
-    setEmail(signupEmail);
-    setId(signupEmail);
-    setPassword(signupPw);
-    setIsLoggedIn(true);
-    setShowSignupModal(false);
-    setSignupEmail("");
-    setSignupPw("");
-    setSignupEmailError("");
-    setSignupPwError("");
-    setEmailChecked(false);
-    alert("회원가입이 완료되었습니다.");
+    if (!validatePw(signupPw)) {
+      setSignupPwError("문자, 숫자, 특수기호 포함 8~15자로 입력하세요.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: signupEmail,
+          password: signupPw,
+          nickname: signupNickname,
+        }),
+      });
+
+      if (response.status === 200) {
+        setSignupSuccessMessage("회원가입이 완료되었습니다. 3초 후 창이 닫힙니다.");
+        setTimeout(() => {
+          setShowSignupModal(false);
+          setSignupSuccessMessage("");
+        }, 3000);
+      } else {
+        const errorData = await response.json();
+        setSignupPwError(errorData.detail || "회원가입에 실패했습니다. 다시 시도해주세요.");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      setSignupPwError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  // 👇 서버 에러 메시지를 기반으로 수정한 최종 로그인 함수
+  const handleLogin = async () => {
+    if (!loginEmail || !loginPassword) {
+      setLoginError('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    setLoginError('');
+
+    try {
+      // URL에 쿼리 파라미터로 이메일과 비밀번호를 추가합니다.
+      const response = await fetch(`${API_BASE_URL}/api/auth/login?email=${encodeURIComponent(loginEmail)}&password=${encodeURIComponent(loginPassword)}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+        },
+        // Body는 비워둡니다.
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        setEmail(loginEmail);
+        setId(loginEmail);
+        setPassword(loginPassword);
+        setIsLoggedIn(true);
+        setShowLoginModal(false);
+        setLoginEmail("");
+        setLoginPassword("");
+        alert('로그인 되었습니다.');
+
+      } else {
+        setLoginError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setLoginError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handlePwChange = (e) => {
@@ -147,36 +232,15 @@ const MyPage = () => {
     setPassword("");
   };
 
-  const handleLogin = () => {
-    if (!loginEmail || !loginPassword) {
-      setLoginError('이메일과 비밀번호를 모두 입력해주세요.');
-      return;
-    }
-    if (loginEmail === 'test@example.com' && loginPassword === 'password123') {
-      setLoginError('');
-      setEmail(loginEmail);
-      setId(loginEmail);
-      setPassword(loginPassword);
-      setIsLoggedIn(true);
-      setShowLoginModal(false);
-      setLoginEmail("");
-      setLoginPassword("");
-      alert('로그인 되었습니다.');
-    } else {
-      setLoginError('이메일 또는 비밀번호가 올바르지 않습니다.');
-    }
-  };
-
   const handleOpenLoginModal = () => {
     setShowLoginModal(true);
+    setLoginEmail("");
+    setLoginPassword("");
     setLoginError('');
   };
 
   const handleCloseLoginModal = () => {
     setShowLoginModal(false);
-    setLoginEmail('');
-    setLoginPassword('');
-    setLoginError('');
   };
 
   return (
@@ -186,7 +250,6 @@ const MyPage = () => {
       </header>
       <main style={{ width: "100%", maxWidth: 768, margin: "0 auto", padding: '0 16px', display: "flex", flexDirection: "column", gap: 24 }}>
         
-        {/* 계정 관리 */}
         <div style={sectionContainerStyle}>
           <h3 style={sectionTitleStyle}>계정</h3>
           <div style={rowStyle} onClick={() => { isLoggedIn ? setShowLoginModal(true) : handleOpenLoginModal(); }}>
@@ -202,7 +265,6 @@ const MyPage = () => {
           </div>
         </div>
 
-        {/* 앱 설정 */}
         <div style={sectionContainerStyle}>
           <h3 style={sectionTitleStyle}>앱 설정</h3>
           <div style={rowStyle} onClick={() => setShowPopup(true)}>
@@ -216,7 +278,6 @@ const MyPage = () => {
           </div>
         </div>
 
-        {/* 데이터 */}
         <div style={sectionContainerStyle}>
           <h3 style={sectionTitleStyle}>데이터</h3>
           <div style={rowStyle} onClick={() => navigate("/confirm-action?type=reset")}>
@@ -225,7 +286,6 @@ const MyPage = () => {
           </div>
         </div>
 
-        {/* 정보 */}
         <div style={sectionContainerStyle}>
            <div style={rowStyle}>
             <span>프로그램 버전</span>
@@ -233,7 +293,6 @@ const MyPage = () => {
           </div>
         </div>
 
-        {/* 탈퇴 */}
         <div style={{...sectionContainerStyle, background: 'transparent', boxShadow: 'none'}}>
           <div style={{ ...rowStyle, justifyContent: 'center', color: "#EF4444", fontWeight: 500, background: '#fff' }} onClick={() => navigate("/confirm-action?type=withdraw")}>
             서비스 탈퇴하기
@@ -242,55 +301,52 @@ const MyPage = () => {
 
       </main>
       
-      {/* Modals... */}
-      {showLoginModal && !isLoggedIn && (
+      {showLoginModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={handleCloseLoginModal}>
           <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px rgba(0,0,0,0.1)", padding: "32px 28px 28px 28px", minWidth: 320, maxWidth: 400, width: "90%", textAlign: "center", position: "relative" }} onClick={(e) => e.stopPropagation()}>
             <button onClick={handleCloseLoginModal} style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 26, color: "#888", cursor: "pointer", zIndex: 10 }} aria-label="닫기"><IoClose /></button>
-            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>로그인</h3>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>이메일 주소</div>
-              <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="이메일을 입력하세요" style={{ width: "100%", fontSize: 16, padding: "12px 16px", border: "1px solid #ddd", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>비밀번호</div>
-              <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="비밀번호를 입력하세요" style={{ width: "100%", fontSize: 16, padding: "12px 16px", border: "1px solid #ddd", borderRadius: 8, outline: "none", boxSizing: "border-box" }} onKeyPress={(e) => { if (e.key === 'Enter') { handleLogin(); } }} />
-            </div>
-            {loginError && (<div style={{ color: "#ef4444", fontSize: 14, marginBottom: 16, textAlign: "left" }}>{loginError}</div>)}
-            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-              <button onClick={handleCloseLoginModal} style={{ flex: 1, background: "#f5f5f5", color: "#666", border: "none", borderRadius: 8, padding: "12px 0", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>취소</button>
-              <button onClick={handleLogin} style={{ flex: 1, background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "12px 0", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>로그인</button>
-            </div>
-            <div style={{ marginTop: 16, fontSize: 14, color: "#888" }}>테스트용: test@example.com / password123</div>
-          </div>
-        </div>
-      )}
-      {showLoginModal && isLoggedIn && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.3)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowLoginModal(false)}>
-          <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px #d1d5db", padding: "32px 28px 28px 28px", minWidth: 300, maxWidth: 350, textAlign: "center", position: "relative" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowLoginModal(false)} style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 26, color: "#888", cursor: "pointer", zIndex: 10 }} aria-label="닫기"><IoClose /></button>
-            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 18 }}>로그인 정보</h3>
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>이메일 주소</div>
-              <div style={{ fontSize: 16, fontWeight: 600, background: "#f5f5f5", borderRadius: 8, padding: "10px 12px", marginBottom: 10, textAlign: "left" }}>{email}</div>
-              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>비밀번호</div>
-              <div style={{ display: "flex", alignItems: "center", background: "#f5f5f5", borderRadius: 8, padding: "10px 12px", marginBottom: 10 }}>
-                {!editPw ? (
-                  <>
-                    <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: 2 }}>{"*".repeat(password.length)}</span>
-                    <button style={{ marginLeft: 12, background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={() => setEditPw(true)}>수정하기</button>
-                  </>
-                ) : (
-                  <>
-                    <input type="password" value={newPw} onChange={handlePwChange} placeholder="새 비밀번호 입력" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: "60%", marginRight: 8 }} maxLength={15} />
-                    <button style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={handlePwSubmit}>저장</button>
-                    <button style={{ marginLeft: 6, background: "#eee", color: "#888", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontWeight: 500 }} onClick={() => { setEditPw(false); setNewPw(""); setPwError(""); }}>취소</button>
-                  </>
-                )}
+            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>{isLoggedIn ? '로그인 정보' : '로그인'}</h3>
+            {isLoggedIn ? (
+              <div>
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>이메일 주소</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, background: "#f5f5f5", borderRadius: 8, padding: "10px 12px", marginBottom: 10, textAlign: "left" }}>{email}</div>
+                  <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>비밀번호</div>
+                  <div style={{ display: "flex", alignItems: "center", background: "#f5f5f5", borderRadius: 8, padding: "10px 12px", marginBottom: 10 }}>
+                    {!editPw ? (
+                      <>
+                        <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: 2 }}>{"*".repeat(password.length)}</span>
+                        <button style={{ marginLeft: 12, background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={() => setEditPw(true)}>수정하기</button>
+                      </>
+                    ) : (
+                      <>
+                        <input type="password" value={newPw} onChange={handlePwChange} placeholder="새 비밀번호 입력" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: "60%", marginRight: 8 }} maxLength={15} />
+                        <button style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={handlePwSubmit}>저장</button>
+                        <button style={{ marginLeft: 6, background: "#eee", color: "#888", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 14, cursor: "pointer", fontWeight: 500 }} onClick={() => { setEditPw(false); setNewPw(""); setPwError(""); }}>취소</button>
+                      </>
+                    )}
+                  </div>
+                  {pwError && (<div style={{ color: "#d32f2f", fontSize: 13, marginBottom: 8 }}>{pwError}</div>)}
+                </div>
+                <button style={{ width: "100%", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 16, border: "none", borderRadius: 10, padding: "12px 0", cursor: "pointer", marginTop: 8 }} onClick={handleLogout}>로그아웃</button>
               </div>
-              {pwError && (<div style={{ color: "#d32f2f", fontSize: 13, marginBottom: 8 }}>{pwError}</div>)}
-            </div>
-            <button style={{ width: "100%", background: "#EF4444", color: "#fff", fontWeight: 700, fontSize: 16, border: "none", borderRadius: 10, padding: "12px 0", cursor: "pointer", marginTop: 8 }} onClick={handleLogout}>로그아웃</button>
+            ) : (
+              <div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>이메일 주소</div>
+                  <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="이메일을 입력하세요" style={{ width: "100%", fontSize: 16, padding: "12px 16px", border: "1px solid #ddd", borderRadius: 8, outline: "none", boxSizing: "border-box" }} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>비밀번호</div>
+                  <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="비밀번호를 입력하세요" style={{ width: "100%", fontSize: 16, padding: "12px 16px", border: "1px solid #ddd", borderRadius: 8, outline: "none", boxSizing: "border-box" }} onKeyPress={(e) => { if (e.key === 'Enter') { handleLogin(); } }} />
+                </div>
+                {loginError && (<div style={{ color: "#ef4444", fontSize: 14, marginBottom: 16, textAlign: "left" }}>{loginError}</div>)}
+                <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+                  <button onClick={handleCloseLoginModal} style={{ flex: 1, background: "#f5f5f5", color: "#666", border: "none", borderRadius: 8, padding: "12px 0", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>취소</button>
+                  <button onClick={handleLogin} style={{ flex: 1, background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "12px 0", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>로그인</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -299,18 +355,27 @@ const MyPage = () => {
           <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px #d1d5db", padding: "32px 28px 28px 28px", minWidth: 300, maxWidth: 350, textAlign: "center", position: "relative" }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowSignupModal(false)} style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 26, color: "#888", cursor: "pointer", zIndex: 10 }} aria-label="닫기"><IoClose /></button>
             <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 18 }}>회원 가입</h3>
+            
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>닉네임</div>
+              <input type="text" value={signupNickname} onChange={(e) => setSignupNickname(e.target.value)} placeholder="닉네임을 입력하세요" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: "100%" }} autoComplete="off" />
+            </div>
+
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>이메일 주소(ID)</div>
               <div style={{ display: "flex", gap: 8 }}>
-                <input type="email" value={signupEmail} onChange={(e) => { setSignupEmail(e.target.value); setSignupEmailError(""); setEmailChecked(false); }} placeholder="이메일 주소 입력" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", flex: 1 }} autoComplete="off" />
+                <input type="email" value={signupEmail} onChange={(e) => { setSignupEmail(e.target.value); setSignupEmailError(""); setSignupEmailSuccess(""); setEmailChecked(false); }} placeholder="이메일 주소 입력" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", flex: 1 }} autoComplete="off" />
                 <button type="button" style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={handleEmailCheck}>중복 확인</button>
               </div>
-              {signupEmailError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6 }}>{signupEmailError}</div>)}
+              {signupEmailError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupEmailError}</div>)}
+              {signupEmailSuccess && (<div style={{ color: "green", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupEmailSuccess}</div>)}
             </div>
+
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>비밀번호</div>
               <input type="password" value={signupPw} onChange={(e) => { setSignupPw(e.target.value); setSignupPwError(""); }} placeholder="문자, 숫자, 특수기호 포함 8~15자" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: "100%" }} maxLength={15} autoComplete="off" />
-              {signupPwError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6 }}>{signupPwError}</div>)}
+              {signupPwError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupPwError}</div>)}
+              {signupSuccessMessage && (<div style={{ color: "green", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupSuccessMessage}</div>)}
             </div>
             <button type="button" style={{ width: "100%", background: "#4B4BFF", color: "#fff", fontWeight: 700, fontSize: 16, border: "none", borderRadius: 10, padding: "12px 0", cursor: "pointer", marginTop: 8 }} onClick={handleSignup}>입력 완료</button>
           </div>
