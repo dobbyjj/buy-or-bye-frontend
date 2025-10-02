@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BottomNavbar from '../components/common/BottomNavbar';
 import LedgerEntryModal from '../components/ledger/LedgerEntryModal';
 import { IoAdd, IoClose } from 'react-icons/io5';
@@ -13,6 +14,7 @@ const months = [
 
 
 const LedgerPage = () => {
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState('5월');
   const [selectedDay, setSelectedDay] = useState(26);
@@ -271,7 +273,7 @@ const LedgerPage = () => {
 
   // 고정비 수정 페이지 이동
   const handleFixedExpenseEdit = () => {
-    window.location.href = "/fixed-expense";
+    navigate("/fixed-expense");
   };
 
   const fabContainerStyle = {

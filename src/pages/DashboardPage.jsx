@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Doughnut, Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js';
 import BottomNavbar from '../components/common/BottomNavbar';
@@ -32,6 +33,7 @@ const getAgeDecade = (age) => {
 
 
 const DashboardPage = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('asset');
     const [startYear, setStartYear] = useState(2023);
     const [endYear, setEndYear] = useState(2024);
@@ -476,9 +478,9 @@ const DashboardPage = () => {
                 </div>
                 <section style={{ marginBottom: 40 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 18 }}>{currentConfig.title}</h2>
-                    <ChartBlock config={currentConfig.chart1} options={doughnutOptions} isDoughnut={true} isAnalysisData={isAnalysisData} />
-                    <ChartBlock config={currentConfig.chart2} options={commonOptions} wide={true} showGoalEdit={true} activeTab={activeTab} isAnalysisData={isAnalysisData} />
-                    <ChartBlock config={currentConfig.chart3} options={commonOptions} wide={true} isAnalysisData={isAnalysisData} />
+                    <ChartBlock config={currentConfig.chart1} options={doughnutOptions} isDoughnut={true} isAnalysisData={isAnalysisData} navigate={navigate} />
+                    <ChartBlock config={currentConfig.chart2} options={commonOptions} wide={true} showGoalEdit={true} activeTab={activeTab} isAnalysisData={isAnalysisData} navigate={navigate} />
+                    <ChartBlock config={currentConfig.chart3} options={commonOptions} wide={true} isAnalysisData={isAnalysisData} navigate={navigate} />
                 </section>
             </div>
             <BottomNavbar active="dashboard" />
@@ -488,11 +490,11 @@ const DashboardPage = () => {
 
 export default DashboardPage;
 
-const ChartBlock = ({ config, options, isDoughnut = false, showGoalEdit = false, activeTab, isAnalysisData = false }) => {
+const ChartBlock = ({ config, options, isDoughnut = false, showGoalEdit = false, activeTab, isAnalysisData = false, navigate }) => {
     const ChartComponent = config.type;
 
     const handleGoalEdit = () => {
-        window.location.href = `/goal-edit?type=${activeTab}`;
+        navigate(`/goal-edit?type=${activeTab}`);
     };
 
     const renderDoughnutLegend = () => {
