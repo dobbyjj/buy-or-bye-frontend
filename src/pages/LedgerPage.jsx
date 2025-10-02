@@ -113,6 +113,7 @@ const LedgerPage = () => {
       date: dateString,
       income: data.type === '수입' ? amount : 0,
       expense: data.type === '지출' ? amount : 0,
+      asset: data.type === '자산' ? amount : 0,
       memo: data.memo,
       type: data.type,
       category: data.category,
@@ -132,6 +133,15 @@ const LedgerPage = () => {
       setLedgerEntries(prev => [...prev, newEntry]);
     }
     handleCloseModal();
+  };
+
+  const handleDelete = (entryToDelete) => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      setLedgerEntries(prev => 
+        prev.filter((entry, index) => index !== entryToDelete.index)
+      );
+      handleCloseModal();
+    }
   };
 
   // 달력 정보
@@ -158,11 +168,12 @@ const LedgerPage = () => {
     return ledgerEntries.reduce((acc, entry) => {
       const entryDate = new Date(entry.date);
       if (entryDate >= startOfMonth && entryDate <= endOfMonth) {
-        acc.income += entry.income;
-        acc.expense += entry.expense;
+        acc.income += entry.income || 0;
+        acc.expense += entry.expense || 0;
+        acc.asset += entry.asset || 0;
       }
       return acc;
-    }, { income: 0, expense: 0 });
+    }, { income: 0, expense: 0, asset: 0 });
   }, [ledgerEntries, monthIndex, selectedYear]);
   const selectedDayEntries = useMemo(() => {
     const targetDateString = `${selectedYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
@@ -192,8 +203,9 @@ const LedgerPage = () => {
             const dDate = new Date(d.date);
             return dDate.getDate() === day && dDate.getMonth() === monthIndex && dDate.getFullYear() === selectedYear;
           });
-          const dayIncome = dayData.reduce((sum, d) => sum + d.income, 0);
-          const dayExpense = dayData.reduce((sum, d) => sum + d.expense, 0);
+          const dayIncome = dayData.reduce((sum, d) => sum + (d.income || 0), 0);
+          const dayExpense = dayData.reduce((sum, d) => sum + (d.expense || 0), 0);
+          const dayAsset = dayData.reduce((sum, d) => sum + (d.asset || 0), 0);
           if (day === null) {
             return <div key={index} className="h-16"></div>;
           }
@@ -209,13 +221,18 @@ const LedgerPage = () => {
                 {day}
               </span>
               {dayIncome > 0 && (
-                <span className="text-xs text-blue-600 absolute bottom-4 whitespace-nowrap">
+                <span className="text-xs text-blue-600 absolute top-4 whitespace-nowrap">
                   +{formatCurrency(dayIncome)}
                 </span>
               )}
               {dayExpense > 0 && (
                 <span className="text-xs text-red-500 absolute bottom-1 whitespace-nowrap">
                   -{formatCurrency(dayExpense)}
+                </span>
+              )}
+              {dayAsset > 0 && (
+                <span className="text-xs text-green-600 absolute bottom-4 whitespace-nowrap">
+                  자산{formatCurrency(dayAsset)}
                 </span>
               )}
               {isSelected && (
@@ -251,8 +268,14 @@ const LedgerPage = () => {
                     {entry.category || entry.type} ({entry.payment || '없음'})
                   </span>
                 </div>
-                <span className={`font-semibold text-lg ${entry.income > 0 ? 'text-blue-600' : 'text-red-500'}`}>
-                  {entry.income > 0 ? `+${formatCurrency(entry.income)}원` : `-${formatCurrency(entry.expense)}원`}
+                <span className={`font-semibold text-lg ${
+                  entry.income > 0 ? 'text-blue-600' : 
+                  entry.expense > 0 ? 'text-red-500' : 
+                  'text-green-600'
+                }`}>
+                  {entry.income > 0 ? `+${formatCurrency(entry.income)}원` : 
+                   entry.expense > 0 ? `-${formatCurrency(entry.expense)}원` : 
+                   `자산${formatCurrency(entry.asset)}원`}
                 </span>
                 {/* 편집 아이콘으로 변경 */}
                 <button 
@@ -349,7 +372,8 @@ const LedgerPage = () => {
           {/* 수입/지출 합계 */}
           <div style={{ marginBottom: 24, fontSize: 18, fontWeight: 600 }}>
             <span style={{ color: "#3B82F6", marginRight: 24 }}>수입: {formatCurrency(monthlySummary.income)}원</span>
-            <span style={{ color: "#EF4444" }}>지출: {formatCurrency(monthlySummary.expense)}원</span>
+            <span style={{ color: "#EF4444", marginRight: 24 }}>지출: {formatCurrency(monthlySummary.expense)}원</span>
+            <span style={{ color: "#10B981" }}>자산: {formatCurrency(monthlySummary.asset)}원</span>
           </div>
           {/* 달력 */}
           {renderCalendar()}
@@ -402,11 +426,11 @@ const LedgerPage = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                title="고정비 지출 수정"
+                title="고정 수익/비용 입력"
               >
                 <MdArrowBack size={28} />
               </button>
-              <span style={{ fontSize: 14, color: '#333', fontWeight: 600, marginTop: 6, background: 'rgba(255,255,255,0.8)', padding: '2px 6px', borderRadius: 4 }}>고정비 지출 수정</span>
+              <span style={{ fontSize: 14, color: '#333', fontWeight: 600, marginTop: 6, background: 'rgba(255,255,255,0.8)', padding: '2px 6px', borderRadius: 4 }}>고정수익/비용</span>
             </div>
 
             {/* 수입/지출 입력 버튼 */}
@@ -426,11 +450,11 @@ const LedgerPage = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                title="수입/지출 입력"
+                title="자산/수입/지출"
               >
                 <MdEdit size={24} />
               </button>
-              <span style={{ fontSize: 14, color: '#333', fontWeight: 600, marginTop: 6, background: 'rgba(255,255,255,0.8)', padding: '2px 6px', borderRadius: 4 }}>수입/지출 입력</span>
+              <span style={{ fontSize: 14, color: '#333', fontWeight: 600, marginTop: 6, background: 'rgba(255,255,255,0.8)', padding: '2px 6px', borderRadius: 4 }}>자산/수입/지출</span>
             </div>
           </div>
         )}
@@ -442,6 +466,7 @@ const LedgerPage = () => {
           editingEntry={editingEntry}
           onSubmit={handleEntrySubmit}
           onClose={handleCloseModal}
+          onDelete={handleDelete}
         />
       )}
       
