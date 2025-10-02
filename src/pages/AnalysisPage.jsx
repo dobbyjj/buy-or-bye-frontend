@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { IoRefreshOutline } from "react-icons/io5";
 import BottomNavbar from "../components/common/BottomNavbar";
 
 const initialFinancialData = {
@@ -50,6 +51,12 @@ const NumberInput = ({ label, name, value, placeholder, handleChange }) => {
         onChange={handleChangeLocal}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault(); // 엔터 키로 다음 페이지로 넘어가는 것을 방지
+            e.target.blur(); // 포커스 해제
+          }
+        }}
         placeholder={placeholder}
         inputMode="numeric"
         autoComplete="off"
@@ -93,6 +100,14 @@ const AnalysisPage = () => {
     }
   };
 
+  const handlePrevious = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    } else if (step === 1) {
+      navigate('/'); // 홈으로 이동
+    }
+  };
+
   const renderStartHome = () => (
     <div style={{ textAlign: "center", padding: 24, minHeight: "70vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "#4B4BFF", marginBottom: 12 }}>재무 상태 분석하기</h1>
@@ -117,7 +132,9 @@ const AnalysisPage = () => {
 
   const renderUserInfoInput = () => (
     <div style={{ padding: 24 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>1/3. 나의 정보를 입력해주세요.</h2>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", margin: 0, textAlign: "center" }}>1/3. 나의 정보를 입력해주세요.</h2>
+      </div>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
         <div style={{ marginBottom: 24 }}>
           <label style={{ display: "block", color: "#333", fontWeight: 600, marginBottom: 6 }}>성별</label>
@@ -188,7 +205,9 @@ const AnalysisPage = () => {
 
   const renderAssetInput = () => (
     <div style={{ padding: 24 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>2/3. 나의 자산 현황을 입력해주세요.</h2>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", margin: 0, textAlign: "center" }}>2/3. 나의 자산 현황을 입력해주세요.</h2>
+      </div>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
         <NumberInput label="부동산 가액" name="realEstateValue" value={formData.realEstateValue} placeholder="보유 부동산의 현재 가치를 입력" handleChange={handleChange} />
         <NumberInput label="대출 금액" name="loanAmount" value={formData.loanAmount} placeholder="주택 담보, 신용 대출 등 총액을 입력" handleChange={handleChange} />
@@ -215,7 +234,9 @@ const AnalysisPage = () => {
 
   const renderIncomeInput = () => (
     <div style={{ padding: 24 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>3/4. 월 수입과 비율을 입력해주세요.</h2>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", margin: 0, textAlign: "center" }}>3/4. 월 수입을 입력해주세요.</h2>
+      </div>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
         <NumberInput label="💰월급" name="monthlyIncome" value={formData.monthlyIncome} placeholder="매월 벌어들이는 총 급여를 입력" handleChange={handleChange} />
         <NumberInput label="📈투자수익" name="investmentIncome" value={formData.investmentIncome} placeholder="부동산, 금융 등 투자 수익을 입력" handleChange={handleChange} />
@@ -242,7 +263,9 @@ const AnalysisPage = () => {
 
   const renderExpenseInput = () => (
     <div style={{ padding: 24 }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", marginBottom: 24 }}>4/4. 월 지출과 비율을 입력해주세요.</h2>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#222", margin: 0, textAlign: "center" }}>4/4. 월 지출을 입력해주세요.</h2>
+      </div>
       <form onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
         <NumberInput label="🍽️식비" name="foodExpense" value={formData.foodExpense} placeholder="식비 관련 지출 금액을 입력" handleChange={handleChange} />
         <NumberInput label="🛍️쇼핑" name="shoppingExpense" value={formData.shoppingExpense} placeholder="쇼핑 관련 지출 금액을 입력" handleChange={handleChange} />
@@ -301,6 +324,35 @@ const AnalysisPage = () => {
       <div style={{ width: "100%", maxWidth: 768, margin: "0 auto" }}>
         {renderStep()}
       </div>
+
+      {/* 흰 박스 바깥쪽 회색 원형 돌아가기 버튼 (첫 번째 단계에서는 숨김) */}
+      {step > 0 && (
+        <button
+          onClick={handlePrevious}
+          style={{
+            position: "fixed",
+            bottom: 100,
+            right: 20,
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            backgroundColor: "#9CA3AF",
+            border: "none",
+            color: "white",
+            fontSize: 24,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            zIndex: 1000,
+          }}
+          aria-label="이전으로 가기"
+        >
+          <IoRefreshOutline style={{ transform: "scaleX(-1)" }} />
+        </button>
+      )}
+
       <BottomNavbar />
     </div>
   );

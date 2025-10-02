@@ -10,6 +10,7 @@ import LedgerPage from './pages/LedgerPage';
 import AnalysisPage from './pages/AnalysisPage';
 import ErrorReportPage from './pages/ErrorReportPage';
 import ConfirmActionPage from './pages/ConfirmActionPage';
+import GoalEditPage from './pages/GoalEditPage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
 
         <Route path="/fixed-expense" element={<FixedExpense />} />
         <Route path="/confirm-action" element={<ConfirmActionPage />} />
+        <Route path="/goal-edit" element={<GoalEditPage />} />
 
         {/* 404 페이지 */}
         <Route path="*" element={<div>404 Page Not Found</div>} />

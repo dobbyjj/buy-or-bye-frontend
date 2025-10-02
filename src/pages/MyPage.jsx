@@ -57,8 +57,10 @@ const MyPage = () => {
   const [pwError, setPwError] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPw, setSignupPw] = useState("");
+  const [signupNickname, setSignupNickname] = useState("");
   const [signupEmailError, setSignupEmailError] = useState("");
   const [signupPwError, setSignupPwError] = useState("");
+  const [signupNicknameError, setSignupNicknameError] = useState("");
   const [emailChecked, setEmailChecked] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -91,6 +93,14 @@ const MyPage = () => {
   };
 
   const handleSignup = () => {
+    if (!signupNickname.trim()) {
+      setSignupNicknameError("닉네임을 입력해주세요.");
+      return;
+    }
+    if (signupNickname.trim().length < 2) {
+      setSignupNicknameError("닉네임은 2자 이상 입력해주세요.");
+      return;
+    }
     if (!validateEmail(signupEmail)) {
       setSignupEmailError("올바른 이메일 주소를 입력하세요.");
       return;
@@ -110,10 +120,12 @@ const MyPage = () => {
     setShowSignupModal(false);
     setSignupEmail("");
     setSignupPw("");
+    setSignupNickname("");
     setSignupEmailError("");
     setSignupPwError("");
+    setSignupNicknameError("");
     setEmailChecked(false);
-    alert("회원가입이 완료되었습니다.");
+    alert(`${signupNickname}님, 회원가입이 완료되었습니다!`);
   };
 
   const handlePwChange = (e) => {
@@ -261,7 +273,7 @@ const MyPage = () => {
               <button onClick={handleCloseLoginModal} style={{ flex: 1, background: "#f5f5f5", color: "#666", border: "none", borderRadius: 8, padding: "12px 0", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>취소</button>
               <button onClick={handleLogin} style={{ flex: 1, background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "12px 0", fontSize: 16, fontWeight: 600, cursor: "pointer" }}>로그인</button>
             </div>
-            <div style={{ marginTop: 16, fontSize: 14, color: "#888" }}>테스트용: test@example.com / password123</div>
+            <button onClick={() => alert('ID/PW 찾기 기능은 추후 업데이트될 예정입니다.')} style={{ width: "100%", background: "none", color: "#4B4BFF", border: "none", fontSize: 14, cursor: "pointer", marginTop: 16, textDecoration: "underline" }}>ID/PW 찾기</button>
           </div>
         </div>
       )}
@@ -295,24 +307,29 @@ const MyPage = () => {
         </div>
       )}
       {showSignupModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.3)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowSignupModal(false)}>
-          <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px #d1d5db", padding: "32px 28px 28px 28px", minWidth: 300, maxWidth: 350, textAlign: "center", position: "relative" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowSignupModal(false)} style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 26, color: "#888", cursor: "pointer", zIndex: 10 }} aria-label="닫기"><IoClose /></button>
-            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 18 }}>회원 가입</h3>
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>이메일 주소(ID)</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input type="email" value={signupEmail} onChange={(e) => { setSignupEmail(e.target.value); setSignupEmailError(""); setEmailChecked(false); }} placeholder="이메일 주소 입력" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", flex: 1 }} autoComplete="off" />
-                <button type="button" style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={handleEmailCheck}>중복 확인</button>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }} onClick={() => setShowSignupModal(false)}>
+          <div style={{ background: "#fff", borderRadius: 20, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", padding: "40px 36px 36px 36px", minWidth: 400, maxWidth: 480, width: "100%", maxHeight: "90vh", overflowY: "auto", textAlign: "center", position: "relative", border: "1px solid rgba(255,255,255,0.8)" }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowSignupModal(false)} style={{ position: "absolute", top: 20, right: 20, background: "none", border: "none", fontSize: 28, color: "#999", cursor: "pointer", zIndex: 10, borderRadius: "50%", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }} aria-label="닫기" onMouseOver={(e) => {e.target.style.background = "#f5f5f5"; e.target.style.color = "#666";}} onMouseOut={(e) => {e.target.style.background = "none"; e.target.style.color = "#999";}}><IoClose /></button>
+            <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 32, color: "#2d3748", letterSpacing: "-0.5px" }}>회원 가입</h3>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 16, color: "#4a5568", marginBottom: 8, textAlign: "left", fontWeight: 600 }}>닉네임</div>
+              <input type="text" value={signupNickname} onChange={(e) => { setSignupNickname(e.target.value); setSignupNicknameError(""); }} placeholder="사용할 닉네임을 입력하세요" style={{ fontSize: 16, padding: "14px 16px", borderRadius: 12, border: "2px solid #e2e8f0", width: "100%", boxSizing: "border-box", transition: "all 0.2s", outline: "none" }} maxLength={20} autoComplete="off" onFocus={(e) => {e.target.style.borderColor = "#4B4BFF"; e.target.style.boxShadow = "0 0 0 3px rgba(75,75,255,0.1)";}} onBlur={(e) => {e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none";}} />
+              {signupNicknameError && (<div style={{ color: "#e53e3e", fontSize: 14, marginTop: 8, textAlign: "left" }}>{signupNicknameError}</div>)}
+            </div>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 16, color: "#4a5568", marginBottom: 8, textAlign: "left", fontWeight: 600 }}>이메일 주소(ID)</div>
+              <div style={{ display: "flex", gap: 12 }}>
+                <input type="email" value={signupEmail} onChange={(e) => { setSignupEmail(e.target.value); setSignupEmailError(""); setEmailChecked(false); }} placeholder="이메일 주소 입력" style={{ fontSize: 16, padding: "14px 16px", borderRadius: 12, border: "2px solid #e2e8f0", flex: 1, transition: "all 0.2s", outline: "none" }} autoComplete="off" onFocus={(e) => {e.target.style.borderColor = "#4B4BFF"; e.target.style.boxShadow = "0 0 0 3px rgba(75,75,255,0.1)";}} onBlur={(e) => {e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none";}} />
+                <button type="button" style={{ background: "linear-gradient(135deg, #4B4BFF 0%, #6366f1 100%)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 20px", fontSize: 15, cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap", boxShadow: "0 4px 12px rgba(75,75,255,0.3)", transition: "all 0.2s" }} onClick={handleEmailCheck} onMouseOver={(e) => {e.target.style.transform = "translateY(-1px)"; e.target.style.boxShadow = "0 6px 20px rgba(75,75,255,0.4)";}} onMouseOut={(e) => {e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "0 4px 12px rgba(75,75,255,0.3)";}} >중복 확인</button>
               </div>
-              {signupEmailError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6 }}>{signupEmailError}</div>)}
+              {signupEmailError && (<div style={{ color: "#e53e3e", fontSize: 14, marginTop: 8, textAlign: "left" }}>{signupEmailError}</div>)}
             </div>
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>비밀번호</div>
-              <input type="password" value={signupPw} onChange={(e) => { setSignupPw(e.target.value); setSignupPwError(""); }} placeholder="문자, 숫자, 특수기호 포함 8~15자" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: "100%" }} maxLength={15} autoComplete="off" />
-              {signupPwError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6 }}>{signupPwError}</div>)}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 16, color: "#4a5568", marginBottom: 8, textAlign: "left", fontWeight: 600 }}>비밀번호</div>
+              <input type="password" value={signupPw} onChange={(e) => { setSignupPw(e.target.value); setSignupPwError(""); }} placeholder="문자, 숫자, 특수기호 포함 8~15자" style={{ fontSize: 16, padding: "14px 16px", borderRadius: 12, border: "2px solid #e2e8f0", width: "100%", boxSizing: "border-box", transition: "all 0.2s", outline: "none" }} maxLength={15} autoComplete="off" onFocus={(e) => {e.target.style.borderColor = "#4B4BFF"; e.target.style.boxShadow = "0 0 0 3px rgba(75,75,255,0.1)";}} onBlur={(e) => {e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none";}} />
+              {signupPwError && (<div style={{ color: "#e53e3e", fontSize: 14, marginTop: 8, textAlign: "left" }}>{signupPwError}</div>)}
             </div>
-            <button type="button" style={{ width: "100%", background: "#4B4BFF", color: "#fff", fontWeight: 700, fontSize: 16, border: "none", borderRadius: 10, padding: "12px 0", cursor: "pointer", marginTop: 8 }} onClick={handleSignup}>입력 완료</button>
+            <button type="button" style={{ width: "100%", background: "linear-gradient(135deg, #4B4BFF 0%, #6366f1 100%)", color: "#fff", fontWeight: 700, fontSize: 18, border: "none", borderRadius: 14, padding: "16px 0", cursor: "pointer", marginTop: 16, boxShadow: "0 8px 24px rgba(75,75,255,0.3)", transition: "all 0.3s", letterSpacing: "-0.3px" }} onClick={handleSignup} onMouseOver={(e) => {e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = "0 12px 32px rgba(75,75,255,0.4)";}} onMouseOut={(e) => {e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "0 8px 24px rgba(75,75,255,0.3)";}} >가입 완료</button>
           </div>
         </div>
       )}
