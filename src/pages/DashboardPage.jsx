@@ -92,11 +92,26 @@ const DashboardPage = () => {
                 const dashboardAssetUpdate = localStorage.getItem('dashboardAssetUpdate');
                 if (dashboardAssetUpdate) {
                     const assetData = JSON.parse(dashboardAssetUpdate);
+                    
+                    // 날짜 기준 자산 업데이트 로깅
+                    console.log(`Dashboard 자산 업데이트: ${assetData.updateDate || '날짜 미지정'} 기준`);
+                    
                     setAssetChartData(prev => ({
                         ...prev,
                         ratio: assetData.ratio,
                         comparison: assetData.comparison
                     }));
+                    
+                    // 요약 정보도 업데이트
+                    if (assetData.ratio && assetData.ratio.datasets && assetData.ratio.datasets[0]) {
+                        const [realEstate, loan, deposit, other] = assetData.ratio.datasets[0].data;
+                        const newCurrentAsset = realEstate + deposit + other - loan;
+                        setSummary(prev => ({
+                            ...prev,
+                            currentAsset: newCurrentAsset
+                        }));
+                    }
+                    
                     // 업데이트 완료 후 데이터 제거
                     localStorage.removeItem('dashboardAssetUpdate');
                 }

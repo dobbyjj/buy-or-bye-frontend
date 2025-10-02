@@ -125,9 +125,19 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
 
     // Dashboard 자산 데이터와 동기화
     useEffect(() => {
-        // Dashboard의 자산 데이터 가져오기 (localStorage나 Dashboard 데이터 소스)
-        const getDashboardAssetData = () => {
-            // Dashboard의 기본 자산 데이터 (실제 Dashboard에서 사용하는 값들)
+        // Analysis 데이터에서 Dashboard 자산 데이터 가져오기
+        const getAnalysisAssetData = () => {
+            const userDataString = localStorage.getItem('userData');
+            if (userDataString) {
+                const userData = JSON.parse(userDataString);
+                return {
+                    '부동산': parseInt(userData.realEstateValue || 0),
+                    '대출': parseInt(userData.loanAmount || 0),
+                    '예금/현금': parseInt(userData.depositAmount || 0),
+                    '기타 금융자산(투자, 적금 등)': parseInt(userData.otherInvestments || 0)
+                };
+            }
+            // 기본값 (Analysis 데이터가 없는 경우)
             return {
                 '부동산': 5000000,
                 '대출': 2000000,
@@ -141,10 +151,10 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
         if (savedAssetBalances) {
             setAssetBalances(JSON.parse(savedAssetBalances));
         } else {
-            // Dashboard 기본값으로 초기화
-            const dashboardAssets = getDashboardAssetData();
-            setAssetBalances(dashboardAssets);
-            localStorage.setItem('assetBalances', JSON.stringify(dashboardAssets));
+            // Analysis 데이터를 기본값으로 초기화
+            const analysisAssets = getAnalysisAssetData();
+            setAssetBalances(analysisAssets);
+            localStorage.setItem('assetBalances', JSON.stringify(analysisAssets));
         }
     }, []);
 
@@ -152,47 +162,68 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
         e.preventDefault();
         const currentData = getCurrentData();
         
-        const parsedAmount = parseInt(currentData.amount) || 0;
+        // 음수도 허용하는 금액 처리
+        const parsedAmount = parseInt(currentData.amount.replace(/[^-0-9]/g, '') || '0');
         const entryData = {
             selectedDate,
-            amount: String(parsedAmount),
+            amount: String(Math.abs(parsedAmount)), // 절댓값으로 저장
             category: currentData.category,
             payment: currentData.payment || '',
             memo: currentData.memo,
             type,
+            isNegative: parsedAmount < 0 // 음수 여부 정보 추가
         };
 
         onSubmit(entryData);
     };
 
-    // 실시간 자산 반영 함수 (엔터키 또는 입력 시)
-    const handleAssetChange = () => {
-        if (!selectedAssetCategory || !assetAmount) return;
+    // 실시간 자산 미리보기 (입력할 때마다 업데이트)
+    const getPreviewBalances = () => {
+        if (!selectedAssetCategory || assetAmount === '') return assetBalances;
         
-        const amount = parseInt(assetAmount.replace(/[^0-9]/g, '') || '0');
-        const updatedBalances = {
+        const changeAmount = parseInt(assetAmount.replace(/[^-0-9]/g, '') || '0');
+        const currentAmount = assetBalances[selectedAssetCategory] || 0;
+        const newAmount = Math.max(0, currentAmount + changeAmount);
+        
+        return {
             ...assetBalances,
-            [selectedAssetCategory]: amount
+            [selectedAssetCategory]: newAmount
         };
-        
-        // 실시간으로 현재 자산 현황에 반영
-        setAssetBalances(updatedBalances);
     };
 
     // 자산 업데이트 함수 (Dashboard에 최종 반영)
     const handleAssetUpdate = (e) => {
         e.preventDefault();
         
-        // 현재 assetBalances를 Dashboard 형식으로 변환하여 저장
+        if (!selectedAssetCategory || assetAmount === '') {
+            alert('카테고리와 변동 금액을 모두 입력해주세요.');
+            return;
+        }
+
+        // 변동 금액 처리
+        const changeAmount = parseInt(assetAmount.replace(/[^-0-9]/g, '') || '0');
+        const currentAmount = assetBalances[selectedAssetCategory] || 0;
+        const newAmount = Math.max(0, currentAmount + changeAmount);
+        
+        const finalBalances = {
+            ...assetBalances,
+            [selectedAssetCategory]: newAmount
+        };
+        
+        // 선택된 날짜 정보
+        const updateDate = selectedDate.toISOString().split('T')[0];
+        
+        // Dashboard 자산 데이터 업데이트 정보 (날짜별로 저장)
         const dashboardAssetData = {
+            updateDate: updateDate,
             ratio: {
                 labels: ['부동산', '대출', '예금/현금', '기타 자산'], 
                 datasets: [{
                     data: [
-                        assetBalances['부동산'] || 0,
-                        assetBalances['대출'] || 0,
-                        assetBalances['예금/현금'] || 0,
-                        assetBalances['기타 금융자산(투자, 적금 등)'] || 0
+                        finalBalances['부동산'] || 0,
+                        finalBalances['대출'] || 0,
+                        finalBalances['예금/현금'] || 0,
+                        finalBalances['기타 금융자산(투자, 적금 등)'] || 0
                     ],
                     backgroundColor: ['#EF4444', '#F59E0B', '#14B8A6', '#3B82F6'],
                     borderWidth: 0
@@ -203,25 +234,25 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
                 datasets: [
                     { 
                         label: '부동산', 
-                        data: [Math.round((assetBalances['부동산'] || 0) / 10000), 0, 600], 
+                        data: [Math.round((finalBalances['부동산'] || 0) / 10000), 0, 600], 
                         backgroundColor: '#EF4444', 
                         stack: 'stack1' 
                     },
                     { 
                         label: '대출', 
-                        data: [Math.round((assetBalances['대출'] || 0) / 10000), 0, 300], 
+                        data: [Math.round((finalBalances['대출'] || 0) / 10000), 0, 300], 
                         backgroundColor: '#F59E0B', 
                         stack: 'stack1' 
                     },
                     { 
                         label: '예금/현금', 
-                        data: [Math.round((assetBalances['예금/현금'] || 0) / 10000), 0, 400], 
+                        data: [Math.round((finalBalances['예금/현금'] || 0) / 10000), 0, 400], 
                         backgroundColor: '#14B8A6', 
                         stack: 'stack1' 
                     },
                     { 
                         label: '기타 자산', 
-                        data: [Math.round((assetBalances['기타 금융자산(투자, 적금 등)'] || 0) / 10000), 0, 200], 
+                        data: [Math.round((finalBalances['기타 금융자산(투자, 적금 등)'] || 0) / 10000), 0, 200], 
                         backgroundColor: '#3B82F6', 
                         stack: 'stack1' 
                     }
@@ -230,24 +261,41 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
         };
         
         // localStorage에 자산 데이터와 Dashboard 업데이트 정보 저장
-        localStorage.setItem('assetBalances', JSON.stringify(assetBalances));
+        localStorage.setItem('assetBalances', JSON.stringify(finalBalances));
         localStorage.setItem('dashboardAssetUpdate', JSON.stringify(dashboardAssetData));
         
-        alert('자산이 Dashboard에 반영되었습니다!');
+        // userData도 날짜 기준으로 완전 override (Analysis 데이터 동기화)
+        const userDataString = localStorage.getItem('userData');
+        if (userDataString) {
+            const userData = JSON.parse(userDataString);
+            // 기존 자산 정보를 새로운 값으로 완전히 교체
+            userData.realEstateValue = String(finalBalances['부동산']);
+            userData.loanAmount = String(finalBalances['대출']);
+            userData.depositAmount = String(finalBalances['예금/현금']);
+            userData.otherInvestments = String(finalBalances['기타 금융자산(투자, 적금 등)']);
+            userData.lastAssetUpdateDate = updateDate; // 마지막 업데이트 날짜 기록
+            localStorage.setItem('userData', JSON.stringify(userData));
+        }
         
-        // 입력 필드 초기화
-        setSelectedAssetCategory('');
-        setAssetAmount('');
+        // 날짜별 자산 히스토리 저장 (추후 분석용)
+        const assetHistory = JSON.parse(localStorage.getItem('assetHistory') || '{}');
+        assetHistory[updateDate] = finalBalances;
+        localStorage.setItem('assetHistory', JSON.stringify(assetHistory));
+        
+        alert(`${updateDate} 기준으로 Dashboard 자산이 완전히 업데이트되었습니다!`);
         
         // 자산 변경 내역을 기록
         const entryData = {
             selectedDate,
-            amount: String(Object.values(assetBalances).reduce((sum, amount) => sum + amount, 0)),
-            category: '자산 총합',
+            amount: String(Math.abs(changeAmount)),
+            category: selectedAssetCategory,
             payment: '',
-            memo: `자산 업데이트 완료`,
+            memo: `${selectedAssetCategory} ${changeAmount >= 0 ? '+' : ''}${changeAmount.toLocaleString('ko-KR')}원 변동 (Dashboard Override)`,
             type: '자산',
         };
+        
+        // 최종 자산 반영
+        setAssetBalances(finalBalances);
         
         onSubmit(entryData);
     };
@@ -316,20 +364,37 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
                         <div style={{ marginBottom: 24 }}>
                             <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>현재 자산 현황</h3>
                             <div style={{ background: '#f8f9fa', borderRadius: 8, padding: 16 }}>
-                                {Object.entries(assetBalances).map(([category, amount]) => (
-                                    <div key={category} style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between', 
-                                        alignItems: 'center',
-                                        marginBottom: 8,
-                                        padding: '8px 0'
-                                    }}>
-                                        <span style={{ fontSize: 14, fontWeight: 500 }}>{category}</span>
-                                        <span style={{ fontSize: 14, color: '#10B981', fontWeight: 600 }}>
-                                            {amount.toLocaleString('ko-KR')}원
-                                        </span>
-                                    </div>
-                                ))}
+                                {Object.entries(getPreviewBalances()).map(([category, amount]) => {
+                                    const isChanging = selectedAssetCategory === category && assetAmount !== '';
+                                    const originalAmount = assetBalances[category] || 0;
+                                    return (
+                                        <div key={category} style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            marginBottom: 8,
+                                            padding: '8px 0',
+                                            background: isChanging ? '#e3f2fd' : 'transparent',
+                                            borderRadius: 4
+                                        }}>
+                                            <span style={{ fontSize: 14, fontWeight: 500 }}>{category}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                {isChanging && (
+                                                    <span style={{ fontSize: 12, color: '#666', textDecoration: 'line-through' }}>
+                                                        {originalAmount.toLocaleString('ko-KR')}원
+                                                    </span>
+                                                )}
+                                                <span style={{ 
+                                                    fontSize: 14, 
+                                                    color: isChanging ? '#1976d2' : '#10B981', 
+                                                    fontWeight: 600 
+                                                }}>
+                                                    {amount.toLocaleString('ko-KR')}원
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                                 <div style={{ 
                                     borderTop: '1px solid #e0e0e0', 
                                     paddingTop: 8, 
@@ -339,7 +404,7 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
                                 }}>
                                     <span>총 자산</span>
                                     <span style={{ color: '#10B981' }}>
-                                        {Object.values(assetBalances).reduce((sum, amount) => sum + amount, 0).toLocaleString('ko-KR')}원
+                                        {Object.values(getPreviewBalances()).reduce((sum, amount) => sum + amount, 0).toLocaleString('ko-KR')}원
                                     </span>
                                 </div>
                             </div>
@@ -355,7 +420,7 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
                                         type="button"
                                         onClick={() => {
                                             setSelectedAssetCategory(cat.label);
-                                            setAssetAmount(assetBalances[cat.label]?.toString() || '0');
+                                            setAssetAmount(''); // 변동 금액 입력을 위해 빈 값으로 초기화
                                         }}
                                         style={{
                                             padding: '12px 16px',
@@ -381,23 +446,31 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
                         {selectedAssetCategory && (
                             <div style={{ marginBottom: 16 }}>
                                 <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>
-                                    변동 금액
+                                    변동 금액 (+ 증가, - 감소)
                                 </label>
                                 <div style={{ position: 'relative' }}>
                                     <input
                                         type="text"
-                                        value={assetAmount ? parseInt(assetAmount.replace(/[^0-9]/g, '') || '0').toLocaleString('ko-KR') : ''}
+                                        value={assetAmount}
                                         onChange={(e) => {
-                                            const numericValue = e.target.value.replace(/[^0-9]/g, '');
-                                            setAssetAmount(numericValue);
+                                            // 음수 부호와 숫자만 허용
+                                            let value = e.target.value.replace(/[^-0-9]/g, '');
+                                            // 음수 부호는 맨 앞에만 허용
+                                            if (value.indexOf('-') > 0) {
+                                                value = value.replace(/-/g, '');
+                                                if (e.target.value.startsWith('-')) {
+                                                    value = '-' + value;
+                                                }
+                                            }
+                                            setAssetAmount(value);
                                         }}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
-                                                handleAssetChange();
+                                                // 엔터키 시 별도 처리 없이 바로 업데이트 버튼으로 이동
                                             }
                                         }}
-                                        placeholder="금액을 입력하세요"
+                                        placeholder="변동 금액을 입력하세요 (예: +1000000 또는 -500000)"
                                         style={{
                                             width: '100%',
                                             padding: '12px 40px 12px 16px',
@@ -420,23 +493,55 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
                                         원
                                     </span>
                                 </div>
+                                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                                    {assetAmount && selectedAssetCategory && (
+                                        <span>
+                                            변동: <span style={{ 
+                                                color: parseInt(assetAmount) >= 0 ? '#10B981' : '#EF4444', 
+                                                fontWeight: 600 
+                                            }}>
+                                                {parseInt(assetAmount) >= 0 ? '+' : ''}{parseInt(assetAmount.replace(/[^-0-9]/g, '') || '0').toLocaleString('ko-KR')}원
+                                            </span>
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         )}
+
+                        {/* 날짜 선택 */}
+                        <div style={{ marginBottom: 16 }}>
+                            <label style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}>날짜</label>
+                            <input
+                                type="date"
+                                value={selectedDate.toISOString().split('T')[0]}
+                                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: 8,
+                                    fontSize: 16,
+                                    outline: 'none'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#4B4BFF'}
+                                onBlur={(e) => e.target.style.borderColor = '#ddd'}
+                            />
+                        </div>
 
                         <button
                             type="submit"
                             style={{
                                 width: '100%',
                                 padding: '12px 0',
-                                background: selectedAssetCategory && assetAmount ? '#4B4BFF' : '#ccc',
+                                background: selectedAssetCategory && assetAmount !== '' ? '#4B4BFF' : '#ccc',
                                 color: '#fff',
                                 border: 'none',
                                 borderRadius: 8,
                                 fontSize: 16,
                                 fontWeight: 600,
-                                cursor: selectedAssetCategory && assetAmount ? 'pointer' : 'not-allowed'
+                                cursor: selectedAssetCategory && assetAmount !== '' ? 'pointer' : 'not-allowed'
                             }}
-                            disabled={!selectedAssetCategory || !assetAmount}
+                            disabled={!selectedAssetCategory || assetAmount === ''}
                         >
                             자산 업데이트
                         </button>
@@ -451,13 +556,20 @@ const LedgerEntryModal = ({ initialDate, editingEntry, onSubmit, onClose, onDele
                         <div style={{ position: 'relative' }}>
                             <input
                                 type="text"
-                                value={getCurrentData().amount ? parseInt(getCurrentData().amount.replace(/[^0-9]/g, '') || '0', 10).toLocaleString('ko-KR') : ''}
+                                value={getCurrentData().amount}
                                 onChange={(e) => {
-                                    // 숫자만 추출
-                                    const numericValue = e.target.value.replace(/[^0-9]/g, '');
-                                    updateCurrentData('amount', numericValue);
+                                    // 음수 부호와 숫자만 허용
+                                    let value = e.target.value.replace(/[^-0-9]/g, '');
+                                    // 음수 부호는 맨 앞에만 허용
+                                    if (value.indexOf('-') > 0) {
+                                        value = value.replace(/-/g, '');
+                                        if (e.target.value.startsWith('-')) {
+                                            value = '-' + value;
+                                        }
+                                    }
+                                    updateCurrentData('amount', value);
                                 }}
-                                placeholder="금액을 입력하세요"
+                                placeholder="금액을 입력하세요 (음수 입력 가능)"
                                 style={{
                                     width: '100%',
                                     padding: '12px 40px 12px 16px',
