@@ -37,12 +37,7 @@ const LedgerPage = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
-  // 로그인 관련 상태
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+
 
   // 연도/월 선택 핸들러
   const handleYearChange = (e) => {
@@ -72,31 +67,7 @@ const LedgerPage = () => {
     setEditingEntry({ ...entry, index: entryIndex });
   };
 
-  // 로그인 처리 함수들
-  const handleLogin = () => {
-    if (!loginEmail || !loginPassword) {
-      setLoginError('이메일과 비밀번호를 모두 입력해주세요.');
-      return;
-    }
-    
-    // 간단한 로그인 검증 (실제 서비스에서는 서버 API 호출)
-    if (loginEmail === 'test@example.com' && loginPassword === 'password') {
-      setLoginError('');
-      setShowLoginModal(false);
-      setLoginEmail('');
-      setLoginPassword('');
-      alert('로그인 되었습니다.');
-    } else {
-      setLoginError('이메일 또는 비밀번호가 올바르지 않습니다.');
-    }
-  };
 
-  const handleLoginModalClose = () => {
-    setShowLoginModal(false);
-    setLoginEmail('');
-    setLoginPassword('');
-    setLoginError('');
-  };
   const handleEntrySubmit = (data) => {
     // 음수 처리가 가능한 금액 파싱
     let amount = parseFloat(data.amount.replace(/[^-0-9.]/g, '') || '0');
@@ -473,151 +444,7 @@ const LedgerPage = () => {
           onDelete={handleDelete}
         />
       )}
-      
-      {/* 로그인 모달 */}
-      {showLoginModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          onClick={handleLoginModalClose}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 16,
-              boxShadow: "0 4px 24px rgba(0,0,0,0.1)",
-              padding: "32px 28px 28px 28px",
-              minWidth: 320,
-              maxWidth: 400,
-              width: "90%",
-              textAlign: "center",
-              position: "relative",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 닫기 X 아이콘 */}
-            <button
-              onClick={handleLoginModalClose}
-              style={{
-                position: "absolute",
-                top: 18,
-                right: 18,
-                background: "none",
-                border: "none",
-                fontSize: 26,
-                color: "#888",
-                cursor: "pointer",
-                zIndex: 10,
-              }}
-              aria-label="닫기"
-            >
-              <IoClose />
-            </button>
-            
-            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>로그인</h3>
-            
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>이메일 주소</div>
-              <input
-                type="email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="이메일을 입력하세요"
-                style={{
-                  width: "100%",
-                  fontSize: 16,
-                  padding: "12px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  outline: "none",
-                  boxSizing: "border-box"
-                }}
-              />
-            </div>
-            
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, color: "#666", marginBottom: 8, textAlign: "left" }}>비밀번호</div>
-              <input
-                type="password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="비밀번호를 입력하세요"
-                style={{
-                  width: "100%",
-                  fontSize: 16,
-                  padding: "12px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  outline: "none",
-                  boxSizing: "border-box"
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleLogin();
-                  }
-                }}
-              />
-            </div>
-            
-            {loginError && (
-              <div style={{
-                color: "#ef4444",
-                fontSize: 14,
-                marginBottom: 16,
-                textAlign: "left"
-              }}>
-                {loginError}
-              </div>
-            )}
-            
-            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-              <button
-                onClick={handleLoginModalClose}
-                style={{
-                  flex: 1,
-                  background: "#f5f5f5",
-                  color: "#666",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "12px 0",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: "pointer"
-                }}
-              >
-                취소
-              </button>
-              <button
-                onClick={handleLogin}
-                style={{
-                  flex: 1,
-                  background: "#4B4BFF",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "12px 0",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: "pointer"
-                }}
-              >
-                로그인
-              </button>
-            </div>
-            
-            <div style={{ marginTop: 16, fontSize: 14, color: "#888" }}>
-              테스트용: test@example.com / password
-            </div>
-          </div>
-        </div>
-      )}
+
       
       <BottomNavbar active="ledger" />
     </div>

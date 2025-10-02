@@ -2,13 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoClose, IoChevronForward } from "react-icons/io5";
 import BottomNavbar from "../components/common/BottomNavbar";
-
-const mockUser = {
-  isLoggedIn: false,
-  email: "",
-  id: "",
-  password: "",
-};
+import { useAuth } from "../contexts/AuthContext";
 
 // Style Objects
 const sectionContainerStyle = {
@@ -44,14 +38,11 @@ const dividerStyle = {
 
 const MyPage = () => {
   const navigate = useNavigate();
+  const { isLoggedIn, user, login, logout } = useAuth();
   const [showPopup, setShowPopup] = useState(false);
   const [smsOption, setSmsOption] = useState("direct");
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(mockUser.isLoggedIn);
-  const [email, setEmail] = useState(mockUser.email);
-  const [id, setId] = useState(mockUser.id);
-  const [password, setPassword] = useState(mockUser.password);
   const [editPw, setEditPw] = useState(false);
   const [newPw, setNewPw] = useState("");
   const [pwError, setPwError] = useState("");
@@ -180,11 +171,7 @@ const MyPage = () => {
 
       if (response.ok) {
         const data = await response.json();
-        
-        setEmail(loginEmail);
-        setId(loginEmail);
-        setPassword(loginPassword);
-        setIsLoggedIn(true);
+        login(data.access_token, {email: loginEmail});
         setLoginEmail("");
         setLoginPassword("");
 
@@ -212,7 +199,8 @@ const MyPage = () => {
 
   const handlePwSubmit = () => {
     if (validatePw(newPw)) {
-      setPassword(newPw);
+      // Here you should call an API to update the password
+      // setPassword(newPw); 
       setEditPw(false);
       setNewPw("");
       setPwError("");
@@ -224,12 +212,8 @@ const MyPage = () => {
 
   // 수정된 로그아웃 함수
   const handleLogout = () => {
-    // alert("로그아웃 되었습니다."); // alert 제거
+    logout();
     setShowLoginModal(false);
-    setIsLoggedIn(false);
-    setId("");
-    setEmail("");
-    setPassword("");
   };
 
   const handleOpenLoginModal = () => {
@@ -255,7 +239,7 @@ const MyPage = () => {
           <div style={rowStyle} onClick={() => { isLoggedIn ? setShowLoginModal(true) : handleOpenLoginModal(); }}>
             <span>로그인 정보</span>
             <span style={{ fontWeight: 500, color: '#6B7280' }}>
-              {isLoggedIn ? id : "로그인 하기"}
+              {isLoggedIn && user ? user.email : "로그인 하기"}
             </span>
           </div>
           <hr style={dividerStyle} />
@@ -306,16 +290,16 @@ const MyPage = () => {
           <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px rgba(0,0,0,0.1)", padding: "32px 28px 28px 28px", minWidth: 320, maxWidth: 400, width: "90%", textAlign: "center", position: "relative" }} onClick={(e) => e.stopPropagation()}>
             <button onClick={handleCloseLoginModal} style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 26, color: "#888", cursor: "pointer", zIndex: 10 }} aria-label="닫기"><IoClose /></button>
             <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>{isLoggedIn ? '로그인 정보' : '로그인'}</h3>
-            {isLoggedIn ? (
+            {isLoggedIn && user ? (
               <div>
                 <div style={{ marginBottom: 18 }}>
                   <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>이메일 주소</div>
-                  <div style={{ fontSize: 16, fontWeight: 600, background: "#f5f5f5", borderRadius: 8, padding: "10px 12px", marginBottom: 10, textAlign: "left" }}>{email}</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, background: "#f5f5f5", borderRadius: 8, padding: "10px 12px", marginBottom: 10, textAlign: "left" }}>{user.email}</div>
                   <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>비밀번호</div>
                   <div style={{ display: "flex", alignItems: "center", background: "#f5f5f5", borderRadius: 8, padding: "10px 12px", marginBottom: 10 }}>
                     {!editPw ? (
                       <>
-                        <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: 2 }}>{"*".repeat(password.length)}</span>
+                        <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: 2 }}>{"*".repeat(8)}</span>
                         <button style={{ marginLeft: 12, background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={() => setEditPw(true)}>수정하기</button>
                       </>
                     ) : (
