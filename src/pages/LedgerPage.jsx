@@ -98,10 +98,13 @@ const LedgerPage = () => {
     setLoginError('');
   };
   const handleEntrySubmit = (data) => {
-    // 숫자 맨 앞에 0 입력 막기 (첫 숫자가 0이면 무시)
-    let amount = data.amount.replace(/^0+/, '');
-    amount = amount === '' ? '0' : amount;
-    amount = parseFloat(amount) || 0;
+    // 음수 처리가 가능한 금액 파싱
+    let amount = parseFloat(data.amount.replace(/[^-0-9.]/g, '') || '0');
+    
+    // 음수인 경우 처리
+    if (data.isNegative) {
+      amount = -Math.abs(amount);
+    }
 
     // 날짜 칸에 시간 이하 삭제
     const year = data.selectedDate.getFullYear();
@@ -111,13 +114,14 @@ const LedgerPage = () => {
 
     const newEntry = {
       date: dateString,
-      income: data.type === '수입' ? amount : 0,
-      expense: data.type === '지출' ? amount : 0,
-      asset: data.type === '자산' ? amount : 0,
+      income: data.type === '수입' ? Math.abs(amount) : 0,
+      expense: data.type === '지출' ? Math.abs(amount) : 0,
+      asset: data.type === '자산' ? Math.abs(amount) : 0,
       memo: data.memo,
       type: data.type,
       category: data.category,
       payment: data.payment,
+      isNegative: data.isNegative || false, // 음수 정보 저장
 
     };
 
@@ -273,9 +277,9 @@ const LedgerPage = () => {
                   entry.expense > 0 ? 'text-red-500' : 
                   'text-green-600'
                 }`}>
-                  {entry.income > 0 ? `+${formatCurrency(entry.income)}원` : 
-                   entry.expense > 0 ? `-${formatCurrency(entry.expense)}원` : 
-                   `자산${formatCurrency(entry.asset)}원`}
+                  {entry.income > 0 ? `${entry.isNegative ? '-' : '+'}${formatCurrency(entry.income)}원` : 
+                   entry.expense > 0 ? `${entry.isNegative ? '+' : '-'}${formatCurrency(entry.expense)}원` : 
+                   `자산${entry.isNegative ? '-' : ''}${formatCurrency(entry.asset)}원`}
                 </span>
                 {/* 편집 아이콘으로 변경 */}
                 <button 
