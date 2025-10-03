@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import QuizPage from './pages/QuizPage';
 import ResultPage from './pages/ResultPage';
@@ -14,7 +14,7 @@ import GoalEditPage from './pages/GoalEditPage';
 
 function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/quiz" element={<QuizPage />} />
@@ -40,7 +40,7 @@ function App() {
         {/* 404 페이지 */}
         <Route path="*" element={<div>404 Page Not Found</div>} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
