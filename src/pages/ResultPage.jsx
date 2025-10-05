@@ -1,149 +1,130 @@
-import React, { useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { FiRotateCw, FiBarChart2, FiShare } from "react-icons/fi";
+import React, { useMemo, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { FiRotateCw, FiBarChart2 } from "react-icons/fi";
+import { RiKakaoTalkFill } from "react-icons/ri";
 import BottomNavbar from "../components/common/BottomNavbar";
 import { mbtiResultData } from "../data/resultData";
-import ScoreBar from "../components/ScoreBar"; // 🚨 ScoreBar 컴포넌트 임포트 🚨
-
-// MBTI 유형을 계산하는 함수 (변경 없음)
-const calculateMBTI = (answers) => {
-  if (!answers || answers.length === 0) {
-    return 'UNKNOWN';
-  }
-
-  const counts = { E: 0, I: 0, N: 0, S: 0, T: 0, F: 0, J: 0, P: 0 };
-  answers.forEach(type => {
-    if (counts.hasOwnProperty(type)) {
-      counts[type]++;
-    }
-  });
-
-  const personality = [];
-  personality.push(counts.E >= counts.I ? 'E' : 'I');
-  personality.push(counts.N >= counts.S ? 'N' : 'S');
-  personality.push(counts.T >= counts.F ? 'T' : 'F');
-  personality.push(counts.J >= counts.P ? 'J' : 'P');
-
-  return personality.join('');
-};
+import ScoreBar from "../components/ScoreBar";
 
 function ResultPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const finalAnswers = location.state?.finalAnswers;
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const mbtiType = searchParams.get('mbti');
 
-  const { mbtiType, resultData } = useMemo(() => {
-    const calculatedMBTI = calculateMBTI(finalAnswers);
-    const data = mbtiResultData[calculatedMBTI] || {
-        type: "알 수 없음",
-        title: "테스트를 다시 진행해주세요",
-        description: "충분한 답변이 수집되지 않았습니다.",
-        image: null
-    };
-    return { mbtiType: calculatedMBTI, resultData: data };
-  }, [finalAnswers]);
+  const resultData = useMemo(() => {
+    return mbtiResultData[mbtiType] || {
+        type: "알 수 없음",
+        title: "테스트를 다시 진행해주세요",
+        description: "결과를 찾을 수 없습니다. 테스트를 다시 시작해주세요.",
+        image: null
+    };
+  }, [mbtiType]);
 
-  // 데이터가 없는 경우의 처리
-  if (!finalAnswers || finalAnswers.length === 0) {
-    return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
-        <h2>테스트 결과 오류</h2>
-        <p>테스트 결과가 올바르게 전달되지 않았습니다.</p>
-        <button onClick={() => navigate("/")}>테스트 다시 시작</button>
-      </div>
-    );
-  }
-  
-  // 분석 상세 그래프 컴포넌트 (내부 정의)
-  const AnalysisSection = () => {
-    // mbtiResultData에 score 속성이 없거나 mbtiType이 UNKNOWN인 경우 그래프를 표시하지 않음
-    if (!resultData.E_score || mbtiType === 'UNKNOWN') return null;
+  useEffect(() => {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      window.Kakao.init('4a921df40e3e751ec082a72280112191');
+    }
+  }, []);
 
-    return (
-      <div style={{ 
-        marginTop: '40px', 
-        padding: '20px', 
-        border: '1px solid #e0e0e0', // 은은한 테두리
-        borderRadius: '12px',
-        textAlign: 'left', // 텍스트 정렬 변경
-        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-      }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '30px', textAlign: 'center', fontWeight: 700, color: '#4B4BFF' }}>분석 상세</h2>
-        
-        {/* 1. WHO: E vs I */}
-        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>WHO</h3>
-        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>누구를 위해 소비하는지</p>
-        <ScoreBar
-          leftLabel="모임 E"
-          rightLabel="자기만족 I"
-          leftDesc="Event"
-          rightDesc="Indulgence"
-          score={100 - resultData.E_score} // E_score는 E의 우위. 그래프는 I (우측)을 기준으로 계산 (100 - E_score)
-          color="#4CAF50" // 녹색
-        />
-        
-        {/* 2. WHEN: S vs N */}
-        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>WHEN</h3>
-        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>언제 소비하는가?</p>
-        <ScoreBar
-          leftLabel="저평가 될 때 S"
-          rightLabel="가치가 높을 때 N"
-          leftDesc="Saver"
-          rightDesc="Novelty"
-          score={resultData.N_score} // N_score는 N의 우위. N이 오른쪽이므로 그대로 사용
-          color="#2196F3" // 파란색
-        />
+  // mbtiType이 없거나 유효하지 않은 경우의 처리
+  if (!mbtiType || !mbtiResultData[mbtiType]) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <h2>테스트 결과 오류</h2>
+        <p>유효하지 않은 결과입니다. 테스트를 다시 시작해주세요.</p>
+        <button onClick={() => navigate("/")}>테스트 다시 시작</button>
+      </div>
+    );
+  }
+  
+  const AnalysisSection = () => {
+    if (!resultData.E_score) return null;
 
-        {/* 3. WHAT: T vs F */}
-        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>WHAT</h3>
-        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>무엇을 위해 소비하는가</p>
-        <ScoreBar
-          leftLabel="스펙 중심 T"
-          rightLabel="감성 중심 F"
-          leftDesc="Tech"
-          rightDesc="Feel"
-          score={resultData.F_score} // F_score는 F의 우위. F가 오른쪽이므로 그대로 사용
-          color="#FFC107" // 노란색
-        />
-        
-        {/* 4. HOW: J vs P */}
-        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>HOW</h3>
-        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>어떻게 소비하는가?</p>
-        <ScoreBar
-          leftLabel="계획적 소비 J"
-          rightLabel="즉흥적 소비 P"
-          leftDesc="Judge"
-          rightDesc="Play"
-          score={resultData.P_score} // P_score는 P의 우위. P가 오른쪽이므로 그대로 사용
-          color="#9C27B0" // 보라색
-        />
-      </div>
-    );
-  };
-  
-  const handleShare = () => {
-    const shareText = `나의 소비 성향 MBTI는 ${mbtiType} (${resultData.title.replace('\n', ' - ')}! ${resultData.description} 결과를 확인해보세요!`;
-    
-    if (navigator.share) {
-      navigator.share({
-        title: '나의 소비 성향 MBTI 결과',
-        text: shareText,
-        url: window.location.href,
-      }).catch(console.error);
-    } else {
-      const shareUrl = `${window.location.origin}/result?mbti=${mbtiType}`;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(`${shareText}\n링크: ${shareUrl}`);
-        alert("결과가 클립보드에 복사되었습니다!");
-      } else {
-        alert("공유 기능을 지원하지 않는 브라우저입니다. (결과: " + mbtiType + ")");
-      }
-    }
-  };
+    return (
+      <div style={{ 
+        marginTop: '40px', 
+        padding: '20px', 
+        border: '1px solid #e0e0e0',
+        borderRadius: '12px',
+        textAlign: 'left',
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+      }}>
+        <h2 style={{ fontSize: '24px', marginBottom: '30px', textAlign: 'center', fontWeight: 700, color: '#4B4BFF' }}>분석 상세</h2>
+        
+        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>WHO</h3>
+        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>누구를 위해 소비하는지</p>
+        <ScoreBar
+          leftLabel="모임 E"
+          rightLabel="자기만족 I"
+          leftDesc="Event"
+          rightDesc="Indulgence"
+          score={100 - resultData.E_score}
+          color="#4CAF50"
+        />
+        
+        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>WHEN</h3>
+        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>언제 소비하는가?</p>
+        <ScoreBar
+          leftLabel="저평가 될 때 S"
+          rightLabel="가치가 높을 때 N"
+          leftDesc="Saver"
+          rightDesc="Novelty"
+          score={resultData.N_score}
+          color="#2196F3"
+        />
 
-  // 두 줄로 된 title을 \n 기준으로 배열로 분리
-  const titleLines = resultData.title.split('\n');
+        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>WHAT</h3>
+        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>무엇을 위해 소비하는가</p>
+        <ScoreBar
+          leftLabel="스펙 중심 T"
+          rightLabel="감성 중심 F"
+          leftDesc="Tech"
+          rightDesc="Feel"
+          score={resultData.F_score}
+          color="#FFC107"
+        />
+        
+        <h3 style={{ fontSize: '16px', fontWeight: 'normal', color: '#888' }}>HOW</h3>
+        <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>어떻게 소비하는가?</p>
+        <ScoreBar
+          leftLabel="계획적 소비 J"
+          rightLabel="즉흥적 소비 P"
+          leftDesc="Judge"
+          rightDesc="Play"
+          score={resultData.P_score}
+          color="#9C27B0"
+        />
+      </div>
+    );
+  };
+  
+  const handleShare = () => {
+    if (window.Kakao && window.Kakao.isInitialized()) {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: `나의 소비 성향: ${mbtiType}`,
+          description: `${resultData.title.replace('\n', ' ')} - ${resultData.description}`,
+          imageUrl: resultData.image ? resultData.image : undefined,
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href,
+          },
+        },
+        buttons: [
+          {
+            title: '결과 확인하기',
+            link: {
+              mobileWebUrl: window.location.href,
+              webUrl: window.location.href,
+            },
+          },
+        ],
+      });
+    }
+  };
 
+  const titleLines = resultData.title.split('\n');
   return (
     <div
       style={{
@@ -266,11 +247,11 @@ function ResultPage() {
                   재무 분석 이어 하기
                 </button>
                 <button
-                  style={buttonSecondaryStyle}
+                  style={{...buttonSecondaryStyle, background: '#FEE500', color: '#000', border: 'none' }}
                   onClick={handleShare}
                 >
-                  <FiShare size={22} />
-                  공유하기
+                  <RiKakaoTalkFill size={22} />
+                  카카오톡으로 공유하기
                 </button>
               </div>
             </div>
@@ -281,7 +262,7 @@ function ResultPage() {
         </div>
       </div>
       <BottomNavbar />
-    </div>
+      </div>
   );
 }
 
