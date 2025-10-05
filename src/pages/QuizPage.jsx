@@ -1,38 +1,51 @@
-// src/pages/QuizPage.jsx
-import React, { useState } from 'react'; // 👈 React 및 State Hooks 임포트
-import { useNavigate } from 'react-router-dom'; // 👈 라우팅 훅 임포트
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MobileLayout from '../components/layout/MobileLayout';
-import ProgressBar from '../components/quiz/ProgressBar'; 
-import QuestionBlock from '../components/quiz/QuestionBlock'; 
-import AnswerButton from '../components/quiz/AnswerButton'; 
+import ProgressBar from '../components/quiz/ProgressBar';
+import QuestionBlock from '../components/quiz/QuestionBlock';
+import AnswerButton from '../components/quiz/AnswerButton';
 import { quizQuestions } from '../data/questions';
 
+// MBTI 유형을 계산하는 함수
+const calculateMBTI = (answers) => {
+  if (!answers || answers.length === 0) {
+    return 'UNKNOWN';
+  }
+
+  const counts = { E: 0, I: 0, N: 0, S: 0, T: 0, F: 0, J: 0, P: 0 };
+  answers.forEach(type => {
+    if (counts.hasOwnProperty(type)) {
+      counts[type]++;
+    }
+  });
+
+  const personality = [];
+  personality.push(counts.E >= counts.I ? 'E' : 'I');
+  personality.push(counts.N >= counts.S ? 'N' : 'S');
+  personality.push(counts.T >= counts.F ? 'T' : 'F');
+  personality.push(counts.J >= counts.P ? 'J' : 'P');
+
+  return personality.join('');
+};
+
 const QuizPage = () => {
-  const navigate = useNavigate(); // 라우팅을 위한 useNavigate 훅 사용
-  
-  // 💥 State 선언 부분 💥
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // 현재 질문 번호
-  const [answers, setAnswers] = useState([]); // 👈 사용자의 답변을 기록하는 State
+  const navigate = useNavigate();
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState([]);
   
   const currentQuestion = quizQuestions[currentQuestionIndex];
   const totalQuestions = quizQuestions.length;
   
-  // 답변 선택 핸들러
   const handleAnswer = (selectedType) => {
-    // 1. 선택된 답변 타입을 answers 배열에 기록
-    setAnswers((prevAnswers) => [...prevAnswers, selectedType]); 
+    const newAnswers = [...answers, selectedType];
+    setAnswers(newAnswers);
     
-    // 2. 다음 질문으로 이동
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // 3. 테스트 완료: 최종 답변 데이터를 준비하고 결과 페이지로 이동
-      const finalAnswers = [...answers, selectedType]; // 현재 답변까지 포함한 최종 배열
-      
-      // alert('테스트 완료! 결과를 보러 갑니다.'); // 알림은 이제 주석 처리 또는 삭제
-      
-      // /result 경로로 이동하며, 답변 데이터를 state로 전달
-      navigate('/result', { state: { finalAnswers } }); 
+      // 테스트 완료: MBTI를 계산하고 결과 페이지로 이동
+      const mbtiType = calculateMBTI(newAnswers);
+      navigate(`/result?mbti=${mbtiType}`);
     }
   };
 
