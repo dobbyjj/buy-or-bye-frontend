@@ -16,37 +16,11 @@ function ChatbotPage() {
     setInput("");
     setLoading(true);
 
-    // OpenAI API 메시지 포맷
-    const apiMessages = [
-      {
-        role: "system",
-        content: "당신은 친근하고 도움이 되는 AI 어시스턴트입니다. 한국어로 답변해주세요."
-      },
-      ...messages.map(msg => ({
-        role: msg.sender === "bot" ? "assistant" : "user",
-        content: msg.text,
-      })),
-      { role: "user", content: input }
-    ];
-
     try {
-      const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-      
-      if (!OPENAI_API_KEY) {
-        throw new Error("OpenAI API Key가 설정되지 않았습니다.");
-      }
-      
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://buy-or-bye-backend.onrender.com/api/chatbot/request", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: apiMessages,
-          max_tokens: 1000,
-          temperature: 0.7,
+          question: input,
         }),
       });
 
