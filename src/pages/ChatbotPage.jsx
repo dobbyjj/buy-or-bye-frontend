@@ -19,6 +19,9 @@ function ChatbotPage() {
     try {
       const response = await fetch("https://buy-or-bye-backend.onrender.com/api/chatbot/request", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           question: input,
         }),
