@@ -33,7 +33,7 @@ function ChatbotPage() {
       }
 
       const data = await response.json();
-      const botResponse = data.choices[0]?.message?.content || "죄송합니다, 응답을 생성할 수 없습니다.";
+      const botResponse = data.answer || "죄송합니다, 응답을 생성할 수 없습니다.";
       
       setMessages(prev => [...prev, { sender: "bot", text: botResponse }]);
     } catch (error) {
