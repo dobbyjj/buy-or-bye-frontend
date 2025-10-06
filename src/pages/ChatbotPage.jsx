@@ -30,7 +30,7 @@ function ChatbotPage() {
     ];
 
     try {
-      const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+      const OPENAI_API_KEY = import.meta.env.OPENAI_API_KEY;
       
       if (!OPENAI_API_KEY) {
         throw new Error("OpenAI API Key가 설정되지 않았습니다.");
