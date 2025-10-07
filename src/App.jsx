@@ -11,6 +11,12 @@ import AnalysisPage from './pages/AnalysisPage';
 import ErrorReportPage from './pages/ErrorReportPage';
 import ConfirmActionPage from './pages/ConfirmActionPage';
 import GoalEditPage from './pages/GoalEditPage';
+import LoginPage from './pages/LoginPage';
+import SessionExpiredPage from './pages/SessionExpiredPage';
+import SignupPage from './pages/SignupPage';
+import PasswordResetPage from './pages/PasswordResetPage';
+import LogoutCompletePage from './pages/LogoutCompletePage';
+
 
 function App() {
   return (
@@ -20,6 +26,12 @@ function App() {
         <Route path="/quiz" element={<QuizPage />} />
         <Route path="/result" element={<ResultPage />} />
         <Route path="/error-report" element={<ErrorReportPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/logout-complete" element={<LogoutCompletePage />} />
+        <Route path="/session-expired" element={<SessionExpiredPage />} />
+
         
         {/* 💥 재무 분석 페이지 경로 추가 */}
         <Route path="/analysis" element={<AnalysisPage />} />

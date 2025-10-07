@@ -42,18 +42,9 @@ const MyPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [smsOption, setSmsOption] = useState("direct");
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
   const [editPw, setEditPw] = useState(false);
   const [newPw, setNewPw] = useState("");
   const [pwError, setPwError] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPw, setSignupPw] = useState("");
-  const [signupNickname, setSignupNickname] = useState("");
-  const [signupEmailError, setSignupEmailError] = useState("");
-  const [signupEmailSuccess, setSignupEmailSuccess] = useState("");
-  const [signupPwError, setSignupPwError] = useState("");
-  const [signupSuccessMessage, setSignupSuccessMessage] = useState("");
-  const [emailChecked, setEmailChecked] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -65,94 +56,6 @@ const MyPage = () => {
     return regex.test(pw);
   };
 
-  const validateEmail = (value) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(value);
-  };
-
-  const handleEmailCheck = async () => {
-    setSignupEmailError("");
-    setSignupEmailSuccess("");
-    setEmailChecked(false);
-
-    if (!validateEmail(signupEmail)) {
-      setSignupEmailError("올바른 이메일 주소를 입력하세요.");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/user/check?email=${signupEmail}`);
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.available === true) {
-          setSignupEmailSuccess("사용 가능한 이메일입니다.");
-          setEmailChecked(true);
-        } else {
-          setSignupEmailError("이미 가입된 이메일입니다. 다른 이메일을 사용해주세요.");
-          setEmailChecked(false);
-        }
-      } else {
-        const errorData = await response.json();
-        setSignupEmailError(errorData.detail || "중복 확인 중 오류가 발생했습니다.");
-        setEmailChecked(false);
-      }
-    } catch (error) {
-      console.error("Email check error:", error);
-      setSignupEmailError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-      setEmailChecked(false);
-    }
-  };
-
-  const handleSignup = async () => {
-    setSignupEmailError("");
-    setSignupPwError("");
-    setSignupSuccessMessage("");
-
-    if (!signupNickname.trim()) {
-        setSignupPwError("닉네임을 입력해주세요.");
-        return;
-    }
-    if (!validateEmail(signupEmail)) {
-      setSignupEmailError("올바른 이메일 주소를 입력하세요.");
-      return;
-    }
-    if (!emailChecked) {
-      setSignupEmailError("이메일 중복 확인을 해주세요.");
-      return;
-    }
-    if (!validatePw(signupPw)) {
-      setSignupPwError("문자, 숫자, 특수기호 포함 8~15자로 입력하세요.");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/user/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: signupEmail,
-          password: signupPw,
-          nickname: signupNickname,
-        }),
-      });
-
-      if (response.status === 200) {
-        setSignupSuccessMessage("회원가입이 완료되었습니다. 3초 후 창이 닫힙니다.");
-        setTimeout(() => {
-          setShowSignupModal(false);
-          setSignupSuccessMessage("");
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        setSignupPwError(errorData.detail || "회원가입에 실패했습니다. 다시 시도해주세요.");
-      }
-    } catch (error) {
-      console.error("Signup error:", error);
-      setSignupPwError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-    }
-  };
-  
   // 수정된 로그인 함수
   const handleLogin = async () => {
     if (!loginEmail || !loginPassword) {
@@ -214,13 +117,7 @@ const MyPage = () => {
   const handleLogout = () => {
     logout();
     setShowLoginModal(false);
-  };
-
-  const handleOpenLoginModal = () => {
-    setShowLoginModal(true);
-    setLoginEmail("");
-    setLoginPassword("");
-    setLoginError('');
+    navigate('/logout-complete');
   };
 
   const handleCloseLoginModal = () => {
@@ -236,16 +133,11 @@ const MyPage = () => {
         
         <div style={sectionContainerStyle}>
           <h3 style={sectionTitleStyle}>계정</h3>
-          <div style={rowStyle} onClick={() => { isLoggedIn ? setShowLoginModal(true) : handleOpenLoginModal(); }}>
+          <div style={rowStyle} onClick={handleLogout}>
             <span>로그인 정보</span>
             <span style={{ fontWeight: 500, color: '#6B7280' }}>
-              {isLoggedIn && user ? user.email : "로그인 하기"}
+              로그아웃
             </span>
-          </div>
-          <hr style={dividerStyle} />
-          <div style={rowStyle} onClick={() => setShowSignupModal(true)}>
-            <span>회원 가입</span>
-            <IoChevronForward color="#9CA3AF" />
           </div>
         </div>
 
@@ -331,37 +223,6 @@ const MyPage = () => {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-      {showSignupModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.3)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowSignupModal(false)}>
-          <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px #d1d5db", padding: "32px 28px 28px 28px", minWidth: 300, maxWidth: 350, textAlign: "center", position: "relative" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowSignupModal(false)} style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 26, color: "#888", cursor: "pointer", zIndex: 10 }} aria-label="닫기"><IoClose /></button>
-            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 18 }}>회원 가입</h3>
-            
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>닉네임</div>
-              <input type="text" value={signupNickname} onChange={(e) => setSignupNickname(e.target.value)} placeholder="닉네임을 입력하세요" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: "100%" }} autoComplete="off" />
-            </div>
-
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>이메일 주소(ID)</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input type="email" value={signupEmail} onChange={(e) => { setSignupEmail(e.target.value); setSignupEmailError(""); setSignupEmailSuccess(""); setEmailChecked(false); }} placeholder="이메일 주소 입력" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", flex: 1 }} autoComplete="off" />
-                <button type="button" style={{ background: "#4B4BFF", color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }} onClick={handleEmailCheck}>중복 확인</button>
-              </div>
-              {signupEmailError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupEmailError}</div>)}
-              {signupEmailSuccess && (<div style={{ color: "green", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupEmailSuccess}</div>)}
-            </div>
-
-            <div style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 15, color: "#888", marginBottom: 6, textAlign: "left" }}>비밀번호</div>
-              <input type="password" value={signupPw} onChange={(e) => { setSignupPw(e.target.value); setSignupPwError(""); }} placeholder="문자, 숫자, 특수기호 포함 8~15자" style={{ fontSize: 15, padding: "8px", borderRadius: 8, border: "1px solid #ddd", width: "100%" }} maxLength={15} autoComplete="off" />
-              {signupPwError && (<div style={{ color: "#d32f2f", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupPwError}</div>)}
-              {signupSuccessMessage && (<div style={{ color: "green", fontSize: 13, marginTop: 6, textAlign: 'left' }}>{signupSuccessMessage}</div>)}
-            </div>
-            <button type="button" style={{ width: "100%", background: "#4B4BFF", color: "#fff", fontWeight: 700, fontSize: 16, border: "none", borderRadius: 10, padding: "12px 0", cursor: "pointer", marginTop: 8 }} onClick={handleSignup}>입력 완료</button>
           </div>
         </div>
       )}
