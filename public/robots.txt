@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://buyorbye.co.kr/sitemap.xml
