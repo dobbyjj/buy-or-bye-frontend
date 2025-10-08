@@ -16,7 +16,7 @@ import SessionExpiredPage from './pages/SessionExpiredPage';
 import SignupPage from './pages/SignupPage';
 import PasswordResetPage from './pages/PasswordResetPage';
 import LogoutCompletePage from './pages/LogoutCompletePage';
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
 
 function App() {
   return (
